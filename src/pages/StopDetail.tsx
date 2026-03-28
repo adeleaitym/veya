@@ -19,11 +19,20 @@ const StopDetail = () => {
   const desc = searchParams.get("desc") || "";
   const duration = searchParams.get("duration") || "";
 
+  const goBack = () => {
+    // Try browser history first, fallback to /route
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/route");
+    }
+  };
+
   return (
     <div className="min-h-screen paper-texture flex flex-col">
       <header className="w-full max-w-md mx-auto px-6 pt-12 pb-2">
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="text-ink/40 font-body text-sm mb-6 hover:text-ink transition-colors"
         >
           ← Back to route
@@ -31,7 +40,6 @@ const StopDetail = () => {
       </header>
 
       <div className="flex-1 w-full max-w-md mx-auto px-6 flex flex-col items-center justify-center text-center">
-        {/* Big icon */}
         <div className="w-24 h-24 rounded-full bg-muted/20 border-2 border-ink/10 flex items-center justify-center text-5xl mb-6">
           {stopIcons[type] || "📍"}
         </div>
@@ -47,13 +55,17 @@ const StopDetail = () => {
         </p>
       </div>
 
-      {/* Actions */}
       <div className="w-full max-w-md mx-auto px-6 py-8 space-y-3">
-        <button className="zine-btn">
+        <a
+          href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="zine-btn"
+        >
           Get directions →
-        </button>
+        </a>
         <button
-          onClick={() => navigate(-1)}
+          onClick={goBack}
           className="w-full py-3 font-display text-lg text-ink/50 hover:text-ink transition-colors"
         >
           Back to route
