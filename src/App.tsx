@@ -10,6 +10,8 @@ import RouteView from "./pages/RouteView.tsx";
 import StopDetail from "./pages/StopDetail.tsx";
 import Tonight from "./pages/Tonight.tsx";
 import Feedback from "./pages/Feedback.tsx";
+import Booking from "./pages/Booking.tsx";
+import Confirmation from "./pages/Confirmation.tsx";
 import RoutePoster from "./pages/RoutePoster.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
