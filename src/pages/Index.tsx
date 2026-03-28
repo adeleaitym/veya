@@ -72,11 +72,11 @@ const Index = () => {
       <section className="w-full max-w-md mx-auto px-6 mt-12 mb-16">
         <button
           onClick={() => navigate("/vibes")}
-          className="zine-btn"
+          className="w-full py-4 px-6 rounded-2xl bg-primary text-primary-foreground font-body font-semibold text-lg tracking-wide shadow-lg shadow-primary/25 active:scale-[0.98] transition-all duration-200 hover:shadow-xl hover:shadow-primary/30"
         >
-          Plan my night →
+          Plan my night
         </button>
-        <p className="text-center text-xs font-display text-ink/30 mt-4 text-base">
+        <p className="text-center font-body text-ink/30 mt-4 text-sm">
           Evenings designed around your mood ✦
         </p>
       </section>
