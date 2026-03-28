@@ -247,7 +247,7 @@ const CityVibes = () => {
             <h1 className="text-5xl font-display font-bold text-ink leading-[0.95] ink-underline">
               {cityName}
             </h1>
-            <p className="text-ink/50 text-sm font-display text-xl mt-3 tilt-3">
+            <p className="text-ink/50 font-accent text-xl mt-3 tilt-3">
               ✎ Plan your evening
             </p>
           </div>
