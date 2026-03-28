@@ -3,22 +3,15 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-import vibeHiddenGems from "@/assets/vibe-hidden-gems.jpg";
-import vibeDateNight from "@/assets/vibe-date-night.jpg";
-import vibeAfterWork from "@/assets/vibe-after-work.jpg";
-import vibeSweetStops from "@/assets/vibe-sweet-stops.jpg";
-
-const cityNames: Record<string, string> = {
-  stockholm: "Stockholm", paris: "Paris", london: "London", tokyo: "Tokyo",
-  barcelona: "Barcelona", istanbul: "Istanbul", "new-york": "New York",
-  "mexico-city": "Mexico City", marrakech: "Marrakech", bangkok: "Bangkok",
-};
-
 const vibes = [
-  { id: "hidden-gems", label: "Hidden Gems", tagline: "Behind the unmarked door", img: vibeHiddenGems },
-  { id: "date-night", label: "Date Night", tagline: "Candlelight & conversation", img: vibeDateNight },
-  { id: "after-work", label: "After Work", tagline: "Unwind with the crew", img: vibeAfterWork },
-  { id: "sweet-stops", label: "Sweet Stops", tagline: "Life is short, eat dessert", img: vibeSweetStops },
+  { id: "hidden-gems", label: "Hidden Gems", emoji: "🕵️" },
+  { id: "date-night", label: "Date Night", emoji: "🕯️" },
+  { id: "after-work", label: "After Work", emoji: "🍻" },
+  { id: "sweet-stops", label: "Sweet Stops", emoji: "🍰" },
+  { id: "brunch", label: "Brunch", emoji: "🥞" },
+  { id: "rooftop", label: "Rooftop", emoji: "🌇" },
+  { id: "street-food", label: "Street Food", emoji: "🥡" },
+  { id: "late-night", label: "Late Night", emoji: "🌙" },
 ];
 
 const groupSizes = ["1", "2", "3–4", "5+"];
