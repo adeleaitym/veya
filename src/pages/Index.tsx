@@ -5,9 +5,9 @@ import iconCoffee from "@/assets/icon-coffee.png";
 import iconPin from "@/assets/icon-pin.png";
 
 const features = [
-  { icon: iconPin, label: "Curated routes", desc: "Handpicked paths through iconic neighborhoods" },
-  { icon: iconNoodles, label: "Local eats", desc: "From street stalls to hidden gems" },
-  { icon: iconCoffee, label: "Café stops", desc: "Rest, refuel, and people-watch" },
+  { icon: iconPin, label: "Pick your vibe", desc: "Choose a mood and we design the night" },
+  { icon: iconNoodles, label: "Curated experiences", desc: "Dinner, drinks, activities — all planned for you" },
+  { icon: iconCoffee, label: "Share & enjoy", desc: "Send it as a card, live it together" },
 ];
 
 const Index = () => {
@@ -20,7 +20,7 @@ const Index = () => {
           Veya
         </h1>
         <p className="text-ink/40 text-xl font-display mt-2">
-          Curated city journeys through food ✦
+          Pick a vibe. Live it. ✦
         </p>
       </header>
 
@@ -74,10 +74,10 @@ const Index = () => {
           onClick={() => navigate("/vibes")}
           className="zine-btn"
         >
-          Start your route →
+          Plan my night →
         </button>
         <p className="text-center text-xs font-display text-ink/30 mt-4 text-base">
-          Available in 10 cities worldwide ✦
+          Evenings designed around your mood ✦
         </p>
       </section>
     </div>
