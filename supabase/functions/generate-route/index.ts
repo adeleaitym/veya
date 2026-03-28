@@ -74,7 +74,7 @@ Respond ONLY with valid JSON, no markdown, no explanation. Use this exact struct
     }
 
     const aiData = await aiResp.json();
-    const content = aiData.choices?.[0]?.message?.content || "";
+    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     if (!content) {
       return new Response(JSON.stringify({ error: "Empty AI response" }), {
@@ -83,7 +83,7 @@ Respond ONLY with valid JSON, no markdown, no explanation. Use this exact struct
       });
     }
 
-    return new Response(JSON.stringify({ route: content, provider: "lovable-ai" }), {
+    return new Response(JSON.stringify({ route: content, provider: "google-ai" }), {
       headers: jsonHeaders,
     });
   } catch (e) {
