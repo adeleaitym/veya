@@ -49,6 +49,7 @@ const CityVibes = () => {
   const cityName = cityNameMap[cityId || ""] || cityId || "";
 
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
+  const [freePrompt, setFreePrompt] = useState("");
   const [groupSize, setGroupSize] = useState<string | null>(null);
   const [budget, setBudget] = useState<string | null>(null);
   const [area, setArea] = useState<string | null>(null);
@@ -60,7 +61,7 @@ const CityVibes = () => {
   const [loadingPoster, setLoadingPoster] = useState(false);
 
   const cityAreas = areas[cityId || ""] || null;
-  const canSubmit = selectedVibe && groupSize && budget;
+  const canSubmit = (selectedVibe || freePrompt.trim()) && groupSize && budget;
 
   const handleCreate = async () => {
     if (!canSubmit) return;
