@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Wine, Martini, Coffee, Salad, UtensilsCrossed, Cake, Cookie, Sparkles, Sunrise, Palette, Music, Moon, Footprints, MapPin } from "lucide-react";
 
 type RouteStop = {
   order: number;
@@ -16,20 +17,22 @@ type RouteData = {
   stops: RouteStop[];
 };
 
-const stopIcons: Record<string, string> = {
-  drink: "🍷",
-  cocktail: "🍸",
-  coffee: "☕",
-  appetizer: "🥗",
-  main: "🍽️",
-  dessert: "🍰",
-  snack: "🥨",
-  experience: "✨",
-  viewpoint: "🌅",
-  culture: "🎨",
-  music: "🎵",
-  nightlife: "🌙",
-  walk: "🚶",
+const stopIconMap: Record<string, React.ElementType> = {
+  drink: Wine, cocktail: Martini, coffee: Coffee, appetizer: Salad,
+  main: UtensilsCrossed, dessert: Cake, snack: Cookie, experience: Sparkles,
+  viewpoint: Sunrise, culture: Palette, music: Music, nightlife: Moon, walk: Footprints,
+};
+
+const stopLabels: Record<string, string> = {
+  drink: "Drinks", cocktail: "Cocktails", coffee: "Coffee", appetizer: "Starter",
+  main: "Main Course", dessert: "Dessert", snack: "Snack", experience: "Experience",
+  viewpoint: "Viewpoint", culture: "Culture", music: "Live Music", nightlife: "Nightlife", walk: "Walk",
+};
+
+const stopColors: Record<string, string> = {
+  drink: "#C75B3A", cocktail: "#8B4F6E", coffee: "#D4943A", appetizer: "#2A7B6F",
+  main: "#C75B3A", dessert: "#8B4F6E", snack: "#D4943A", experience: "#5B7FA5",
+  viewpoint: "#2A7B6F", culture: "#5B7FA5", music: "#8B4F6E", nightlife: "#6B8E5A", walk: "#2A7B6F",
 };
 
 const RouteView = () => {
