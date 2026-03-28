@@ -238,12 +238,15 @@ const CityVibes = () => {
 
           <div className="ink-divider" />
 
-          {/* Vibe — quick picks */}
+          {/* Vibe — horizontal swipeable */}
           <div className="space-y-4">
             <h2 className="text-3xl font-display font-bold text-ink tilt-6">
               Pick your vibe
             </h2>
-            <div className="flex flex-wrap gap-2.5">
+            <div 
+              className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
               {vibes.map((vibe, i) => (
                 <button
                   key={vibe.id}
@@ -251,10 +254,24 @@ const CityVibes = () => {
                     setSelectedVibe(vibe.id);
                     setFreePrompt("");
                   }}
-                  className={`zine-sticker ${selectedVibe === vibe.id && !freePrompt ? "selected" : ""} ${tiltClasses[i % tiltClasses.length]}`}
+                  className={`flex-shrink-0 flex flex-col items-center gap-2 w-24 snap-start transition-all duration-200 ${
+                    selectedVibe === vibe.id && !freePrompt
+                      ? "scale-110"
+                      : "opacity-80 hover:opacity-100"
+                  } ${tiltClasses[i % tiltClasses.length]}`}
                 >
-                  <span className="vibe-emoji">{vibe.emoji}</span>
-                  <span>{vibe.label}</span>
+                  <div className={`w-20 h-20 rounded-[28%_22%_30%_20%] overflow-hidden flex items-center justify-center transition-all duration-200 ${
+                    selectedVibe === vibe.id && !freePrompt
+                      ? "ring-[3px] ring-primary shadow-lg bg-primary/10"
+                      : "bg-muted/40"
+                  }`}>
+                    <img src={vibe.icon} alt={vibe.label} className="w-16 h-16 object-contain" loading="lazy" width={512} height={512} />
+                  </div>
+                  <span className={`text-xs font-display font-bold text-center leading-tight ${
+                    selectedVibe === vibe.id && !freePrompt ? "text-primary" : "text-ink/60"
+                  }`}>
+                    {vibe.label}
+                  </span>
                 </button>
               ))}
             </div>
