@@ -17,7 +17,7 @@ const Index = () => {
         <p className="text-xs font-body tracking-[0.35em] uppercase text-muted-foreground mb-2">
           Explore · Taste · Wander
         </p>
-        <h1 className="text-6xl font-display text-foreground leading-none">
+        <h1 className="text-7xl font-display font-bold text-foreground leading-none">
           Veya
         </h1>
         <p className="mt-3 text-base font-body text-muted-foreground leading-relaxed">
