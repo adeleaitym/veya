@@ -144,17 +144,21 @@
   .zine-sticker {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
+    gap: 8px;
+    padding: 10px 18px;
     border: 2px solid hsl(var(--ink));
     border-radius: 24px 20px 26px 18px;
     font-family: var(--font-display);
     font-weight: 600;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
     cursor: pointer;
     transition: all 0.2s ease;
     background: hsl(var(--paper));
     color: hsl(var(--ink));
+  }
+  .zine-sticker .vibe-emoji {
+    font-size: 1.6rem;
+    line-height: 1;
   }
   .zine-sticker:hover {
     transform: rotate(-1deg) scale(1.04);
