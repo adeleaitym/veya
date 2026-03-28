@@ -35,6 +35,7 @@ const RouteView = () => {
   const budget = searchParams.get("budget") || "";
   const time = searchParams.get("time") || "";
   const food = searchParams.get("food") || "";
+  const city = searchParams.get("city") || where;
 
   const [route, setRoute] = useState<RouteData | null>(null);
   const [loading, setLoading] = useState(true);
