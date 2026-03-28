@@ -279,3 +279,7 @@
 .tilt-6 { transform: rotate(0.5deg); }
 .tilt-7 { transform: rotate(-2deg); }
 .tilt-8 { transform: rotate(1.5deg); }
+
+/* Hide scrollbar for swipeable areas */
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
