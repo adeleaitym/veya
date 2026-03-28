@@ -3,15 +3,24 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import vibeHiddenGems from "@/assets/vibe-icon-hidden-gems.png";
+import vibeDateNight from "@/assets/vibe-icon-date-night.png";
+import vibeAfterWork from "@/assets/vibe-icon-after-work.png";
+import vibeSweetStops from "@/assets/vibe-icon-sweet-stops.png";
+import vibeBrunch from "@/assets/vibe-icon-brunch.png";
+import vibeRooftop from "@/assets/vibe-icon-rooftop.png";
+import vibeStreetFood from "@/assets/vibe-icon-street-food.png";
+import vibeLatNight from "@/assets/vibe-icon-late-night.png";
+
 const vibes = [
-  { id: "hidden-gems", label: "Hidden Gems", emoji: "🕵️" },
-  { id: "date-night", label: "Date Night", emoji: "🕯️" },
-  { id: "after-work", label: "After Work", emoji: "🍻" },
-  { id: "sweet-stops", label: "Sweet Stops", emoji: "🍰" },
-  { id: "brunch", label: "Brunch", emoji: "🥞" },
-  { id: "rooftop", label: "Rooftop", emoji: "🌇" },
-  { id: "street-food", label: "Street Food", emoji: "🥡" },
-  { id: "late-night", label: "Late Night", emoji: "🌙" },
+  { id: "hidden-gems", label: "Hidden Gems", icon: vibeHiddenGems },
+  { id: "date-night", label: "Date Night", icon: vibeDateNight },
+  { id: "after-work", label: "After Work", icon: vibeAfterWork },
+  { id: "sweet-stops", label: "Sweet Stops", icon: vibeSweetStops },
+  { id: "brunch", label: "Brunch", icon: vibeBrunch },
+  { id: "rooftop", label: "Rooftop", icon: vibeRooftop },
+  { id: "street-food", label: "Street Food", icon: vibeStreetFood },
+  { id: "late-night", label: "Late Night", icon: vibeLatNight },
 ];
 
 const cityNameMap: Record<string, string> = {
