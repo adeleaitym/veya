@@ -47,58 +47,69 @@ CRITICAL RULES:
 Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure:
 {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack, viewpoint, culture, music, nightlife, walk)","description":"string (1 vivid sentence about the real place)","duration":"string"}]}`;
 
-    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
-    if (!GOOGLE_AI_API_KEY) {
-      console.error("GOOGLE_AI_API_KEY not configured");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
       return new Response(JSON.stringify({ error: "AI service not configured" }), {
         status: 500,
         headers: jsonHeaders,
       });
     }
 
-    const aiResp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [
-            { role: "user", parts: [{ text: `${systemPrompt}\n\n${message}` }] },
-          ],
-          generationConfig: {
-            responseMimeType: "application/json",
-          },
-        }),
-      }
-    );
+    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-3-flash-preview",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+        ],
+      }),
+    });
 
     if (!aiResp.ok) {
       const errText = await aiResp.text();
-      console.error("Google AI failed:", aiResp.status, errText.substring(0, 500));
+      console.error("AI gateway error:", aiResp.status, errText.substring(0, 500));
+
+      if (aiResp.status === 429) {
+        return new Response(JSON.stringify({ error: "Rate limited — please try again in a moment" }), {
+          status: 429, headers: jsonHeaders,
+        });
+      }
+      if (aiResp.status === 402) {
+        return new Response(JSON.stringify({ error: "AI credits exhausted" }), {
+          status: 402, headers: jsonHeaders,
+        });
+      }
+
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
-        status: 502,
-        headers: jsonHeaders,
+        status: 502, headers: jsonHeaders,
       });
     }
 
     const aiData = await aiResp.json();
-    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const content = aiData.choices?.[0]?.message?.content || "";
 
     if (!content) {
       return new Response(JSON.stringify({ error: "Empty AI response" }), {
-        status: 502,
-        headers: jsonHeaders,
+        status: 502, headers: jsonHeaders,
       });
     }
 
-    return new Response(JSON.stringify({ route: content, provider: "google-ai" }), {
+    // Strip markdown fences if present
+    const cleaned = content.replace(/```json\s*/g, "").replace(/```\s*/g, "").trim();
+
+    return new Response(JSON.stringify({ route: cleaned, provider: "lovable-ai" }), {
       headers: jsonHeaders,
     });
   } catch (e) {
     console.error("generate-route error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: jsonHeaders,
+      status: 500, headers: jsonHeaders,
     });
   }
 });
