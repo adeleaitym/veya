@@ -16,7 +16,7 @@ const Index = () => {
     <div className="min-h-screen paper-texture flex flex-col items-center">
       {/* Header */}
       <header className="w-full max-w-md mx-auto px-6 pt-12 pb-2 text-center">
-        <h1 className="text-8xl font-display font-bold text-ink leading-none">
+        <h1 className="text-8xl font-display font-bold text-secondary leading-none">
           Veya
         </h1>
         <p className="text-ink/40 text-xl font-display mt-2">
