@@ -233,7 +233,7 @@ const CityVibes = () => {
       <header className="w-full max-w-md mx-auto px-6 pt-8 pb-2">
         <button
           onClick={() => navigate("/cities")}
-          className="text-ink/40 font-display text-lg hover:text-ink/70 transition-colors"
+          className="text-ink/40 font-body text-sm hover:text-ink/70 transition-colors"
         >
           ← back to cities
         </button>
