@@ -118,43 +118,18 @@ const CityVibes = () => {
     prompt += ". Plan a perfect evening route — this can include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment, or anything that makes a great night out!";
 
     try {
-      // Step 1: Start the conversation (returns immediately)
-      const { data: startData, error: startError } = await supabase.functions.invoke("generate-route", {
+      const { data, error } = await supabase.functions.invoke("generate-route", {
         body: { message: prompt, city: cityName },
       });
-      if (startError) throw startError;
+      if (error) throw error;
 
-      const conversationId = startData?.conversationId;
-      if (!conversationId) throw new Error("No conversation ID returned");
-
-      // Step 2: Poll for completion
-      let attempts = 0;
-      const maxAttempts = 60;
-      while (attempts < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 2000));
-        attempts++;
-
-        const { data: pollData, error: pollError } = await supabase.functions.invoke("poll-route", {
-          body: { conversationId },
-        });
-        if (pollError) throw pollError;
-
-        if (pollData?.status === "completed" && pollData?.message) {
-          const message = pollData.message;
-          const jsonMatch = message.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, message];
-          const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || message);
-          setRoute(parsed);
-          setPhase("route");
-          generateStopImages(parsed.stops);
-          generatePoster(parsed);
-          return;
-        } else if (pollData?.status === "failed") {
-          throw new Error("Route generation failed");
-        }
-        // else still processing, continue polling
-      }
-
-      throw new Error("Route generation timed out");
+      const content = data?.route || "";
+      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
+      const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || content);
+      setRoute(parsed);
+      setPhase("route");
+      generateStopImages(parsed.stops);
+      generatePoster(parsed);
     } catch (err) {
       console.error("Route generation error:", err);
       toast.error("Couldn't generate your route. Try again!");
