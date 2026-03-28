@@ -6,20 +6,25 @@ const RoutePoster = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [posterUrl, setPosterUrl] = useState<string | null>(null);
+  const [textContent, setTextContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const routeName = searchParams.get("routeName") || "My Night";
   const city = searchParams.get("city") || "";
 
+  let stops: any[] = [];
+  try {
+    stops = JSON.parse(searchParams.get("stops") || "[]");
+  } catch {
+    stops = [];
+  }
+
   useEffect(() => {
     const generate = async () => {
       setLoading(true);
       setError(null);
       try {
-        const stopsRaw = searchParams.get("stops");
-        const stops = stopsRaw ? JSON.parse(stopsRaw) : [];
-
         const { data, error: fnError } = await supabase.functions.invoke(
           "generate-route-poster",
           { body: { routeName, city, stops } }
@@ -27,8 +32,10 @@ const RoutePoster = () => {
         if (fnError) throw fnError;
         if (data?.imageUrl) {
           setPosterUrl(data.imageUrl);
+        } else if (data?.textContent) {
+          setTextContent(data.textContent);
         } else {
-          throw new Error("No image returned");
+          throw new Error("No poster content returned");
         }
       } catch (e: any) {
         setError(e.message || "Failed to generate poster");
@@ -37,7 +44,7 @@ const RoutePoster = () => {
       }
     };
     generate();
-  }, [routeName, city, searchParams]);
+  }, [routeName, city]);
 
   const handleShare = async () => {
     if (!posterUrl) return;
