@@ -184,19 +184,41 @@ const CityVibes = () => {
             </p>
           </div>
 
+          {/* Free prompt search */}
+          <div className="space-y-3">
+            <h2 className="text-3xl font-display font-bold text-ink tilt-2">
+              Describe your perfect evening
+            </h2>
+            <div className="sketch-border-light bg-paper px-4 py-3">
+              <textarea
+                value={freePrompt}
+                onChange={(e) => setFreePrompt(e.target.value)}
+                placeholder="e.g. Jazz bar hopping with craft cocktails, ending at a rooftop with a view..."
+                rows={2}
+                className="w-full bg-transparent font-body text-sm text-ink placeholder:text-ink/25 resize-none focus:outline-none leading-relaxed"
+              />
+            </div>
+            <p className="text-xs font-display text-ink/30 tilt-5">
+              or pick a vibe below ↓
+            </p>
+          </div>
+
           <div className="ink-divider" />
 
-          {/* Vibe — the star section */}
+          {/* Vibe — quick picks */}
           <div className="space-y-4">
             <h2 className="text-3xl font-display font-bold text-ink tilt-6">
-              Pick your mood
+              Pick your vibe
             </h2>
             <div className="flex flex-wrap gap-2.5">
               {vibes.map((vibe, i) => (
                 <button
                   key={vibe.id}
-                  onClick={() => setSelectedVibe(vibe.id)}
-                  className={`zine-sticker ${selectedVibe === vibe.id ? "selected" : ""} ${tiltClasses[i % tiltClasses.length]}`}
+                  onClick={() => {
+                    setSelectedVibe(vibe.id);
+                    setFreePrompt("");
+                  }}
+                  className={`zine-sticker ${selectedVibe === vibe.id && !freePrompt ? "selected" : ""} ${tiltClasses[i % tiltClasses.length]}`}
                 >
                   <span>{vibe.emoji}</span>
                   <span>{vibe.label}</span>
