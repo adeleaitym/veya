@@ -3,24 +3,27 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-import vibeHiddenGems from "@/assets/vibe-icon-hidden-gems.png";
-import vibeDateNight from "@/assets/vibe-icon-date-night.png";
-import vibeAfterWork from "@/assets/vibe-icon-after-work.png";
-import vibeSweetStops from "@/assets/vibe-icon-sweet-stops.png";
-import vibeBrunch from "@/assets/vibe-icon-brunch.png";
-import vibeRooftop from "@/assets/vibe-icon-rooftop.png";
-import vibeStreetFood from "@/assets/vibe-icon-street-food.png";
-import vibeLatNight from "@/assets/vibe-icon-late-night.png";
-
 const vibes = [
-  { id: "hidden-gems", label: "Hidden Gems", icon: vibeHiddenGems },
-  { id: "date-night", label: "Date Night", icon: vibeDateNight },
-  { id: "after-work", label: "After Work", icon: vibeAfterWork },
-  { id: "sweet-stops", label: "Sweet Stops", icon: vibeSweetStops },
-  { id: "brunch", label: "Brunch", icon: vibeBrunch },
-  { id: "rooftop", label: "Rooftop", icon: vibeRooftop },
-  { id: "street-food", label: "Street Food", icon: vibeStreetFood },
-  { id: "late-night", label: "Late Night", icon: vibeLatNight },
+  { id: "hidden-gems", label: "Hidden Gems", emoji: "🔮" },
+  { id: "date-night", label: "Date Night", emoji: "🕯️" },
+  { id: "after-work", label: "After Work", emoji: "🍻" },
+  { id: "sweet-stops", label: "Sweet Stops", emoji: "🧁" },
+  { id: "brunch", label: "Brunch", emoji: "🥞" },
+  { id: "rooftop", label: "Rooftop", emoji: "🌇" },
+  { id: "street-food", label: "Street Food", emoji: "🍜" },
+  { id: "late-night", label: "Late Night", emoji: "🌙" },
+  { id: "spanish-night", label: "Spanish Night", emoji: "💃" },
+  { id: "pilates-girl", label: "Pilates Girl", emoji: "🧘‍♀️" },
+  { id: "jazz-evening", label: "Jazz Evening", emoji: "🎷" },
+  { id: "art-crawl", label: "Art Crawl", emoji: "🎨" },
+  { id: "vintage-hunt", label: "Vintage Hunt", emoji: "🪩" },
+  { id: "wine-snob", label: "Wine Snob", emoji: "🍷" },
+  { id: "coffee-nerd", label: "Coffee Nerd", emoji: "☕" },
+  { id: "sunset-chaser", label: "Sunset Chaser", emoji: "🌅" },
+  { id: "bookworm", label: "Bookworm", emoji: "📚" },
+  { id: "party-mode", label: "Party Mode", emoji: "🪅" },
+  { id: "local-life", label: "Local Life", emoji: "🛒" },
+  { id: "wellness-reset", label: "Wellness Reset", emoji: "🧖‍♀️" },
 ];
 
 const cityNameMap: Record<string, string> = {
