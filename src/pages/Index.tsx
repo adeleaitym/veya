@@ -20,7 +20,7 @@ const Index = () => {
           Veya
         </h1>
         <p className="text-ink/40 text-xl font-display mt-2">
-          Curated city journeys through food ✦
+          Pick a vibe. Live it. ✦
         </p>
       </header>
 
