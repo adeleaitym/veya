@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import heroMap from "@/assets/hero-map.jpg";
+import heroIllustration from "@/assets/hero-illustration.png";
 import iconNoodles from "@/assets/icon-noodles.png";
 import iconCoffee from "@/assets/icon-coffee.png";
 import iconPin from "@/assets/icon-pin.png";
@@ -28,8 +28,8 @@ const Index = () => {
       <section className="w-full max-w-md mx-auto px-5 mt-6">
         <div className="sketch-border overflow-hidden tilt-2">
           <img
-            src={heroMap}
-            alt="Illustrated city food map with winding path"
+            src={heroIllustration}
+            alt="Illustrated character dancing in Stockholm tunnelbana"
             width={768}
             height={960}
             className="w-full h-auto object-cover"
