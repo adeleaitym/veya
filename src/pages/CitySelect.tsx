@@ -2,11 +2,25 @@ import { useNavigate } from "react-router-dom";
 import cityStockholm from "@/assets/city-stockholm.jpg";
 import cityParis from "@/assets/city-paris.jpg";
 import cityLondon from "@/assets/city-london.jpg";
+import cityTokyo from "@/assets/city-tokyo.jpg";
+import cityBarcelona from "@/assets/city-barcelona.jpg";
+import cityIstanbul from "@/assets/city-istanbul.jpg";
+import cityNewYork from "@/assets/city-new-york.jpg";
+import cityMexicoCity from "@/assets/city-mexico-city.jpg";
+import cityMarrakech from "@/assets/city-marrakech.jpg";
+import cityBangkok from "@/assets/city-bangkok.jpg";
 
 const cities = [
   { id: "stockholm", name: "Stockholm", country: "Sweden", routes: 7, img: cityStockholm },
   { id: "paris", name: "Paris", country: "France", routes: 14, img: cityParis },
   { id: "london", name: "London", country: "England", routes: 10, img: cityLondon },
+  { id: "tokyo", name: "Tokyo", country: "Japan", routes: 11, img: cityTokyo },
+  { id: "barcelona", name: "Barcelona", country: "Spain", routes: 9, img: cityBarcelona },
+  { id: "istanbul", name: "Istanbul", country: "Turkey", routes: 8, img: cityIstanbul },
+  { id: "new-york", name: "New York", country: "USA", routes: 16, img: cityNewYork },
+  { id: "mexico-city", name: "Mexico City", country: "Mexico", routes: 12, img: cityMexicoCity },
+  { id: "marrakech", name: "Marrakech", country: "Morocco", routes: 6, img: cityMarrakech },
+  { id: "bangkok", name: "Bangkok", country: "Thailand", routes: 13, img: cityBangkok },
 ];
 
 const CitySelect = () => {
@@ -22,7 +36,7 @@ const CitySelect = () => {
         >
           ← Back
         </button>
-        <h1 className="text-5xl font-display font-bold text-foreground leading-none">
+        <h1 className="text-4xl font-display font-bold text-foreground leading-none">
           Pick a city
         </h1>
         <p className="text-foreground leading-none text-lg font-serif font-thin mt-2">
@@ -30,16 +44,16 @@ const CitySelect = () => {
         </p>
       </header>
 
-      {/* City cards */}
-      <section className="w-full max-w-md mx-auto px-6 mt-8 space-y-5 pb-16">
+      {/* City grid */}
+      <section className="w-full max-w-md mx-auto px-6 mt-6 grid grid-cols-2 gap-3 pb-16">
         {cities.map((city, i) => (
           <button
             key={city.id}
             onClick={() => navigate(`/city/${city.id}`)}
-            className="w-full rounded-2xl overflow-hidden bg-card/50 border-2 border-border shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all animate-fade-up text-left"
-            style={{ animationDelay: `${i * 120}ms`, animationFillMode: "backwards" }}
+            className="rounded-2xl overflow-hidden bg-card/50 border border-border shadow-md hover:shadow-lg hover:scale-[1.03] transition-all animate-fade-up text-left"
+            style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
           >
-            <div className="aspect-[4/3] overflow-hidden">
+            <div className="aspect-square overflow-hidden">
               <img
                 src={city.img}
                 alt={`Illustrated view of ${city.name}`}
@@ -49,11 +63,11 @@ const CitySelect = () => {
                 className="w-full h-full object-cover"
               />
             </div>
-            <div className="p-5">
-              <h2 className="text-2xl font-display font-bold text-foreground leading-tight">
+            <div className="px-3 py-2.5">
+              <h2 className="text-base font-display font-bold text-foreground leading-tight">
                 {city.name}
               </h2>
-              <p className="text-sm font-body text-muted-foreground mt-1">
+              <p className="text-xs font-body text-muted-foreground mt-0.5">
                 {city.country} · {city.routes} routes
               </p>
             </div>
