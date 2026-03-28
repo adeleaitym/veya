@@ -23,7 +23,7 @@ const Index = () => {
             alt="Illustrated character dancing in Stockholm tunnelbana"
             width={768}
             height={960}
-            className="w-full h-[380px] object-cover object-center"
+            className="w-full h-[520px] object-cover object-center"
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
