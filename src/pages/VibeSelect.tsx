@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import vibeCreative from "@/assets/vibe-creative.jpg";
 import vibeRomantic from "@/assets/vibe-romantic.jpg";
 import vibeEnergetic from "@/assets/vibe-energetic.jpg";
@@ -8,93 +9,47 @@ import vibeCozy from "@/assets/vibe-cozy.jpg";
 import vibePlayful from "@/assets/vibe-playful.jpg";
 
 const vibes = [
-  {
-    id: "creative",
-    label: "Creative & Hands-on",
-    subtitle: "Make something together",
-    image: vibeCreative,
-    accent: "hsl(var(--primary))",
-  },
-  {
-    id: "romantic",
-    label: "Slow & Romantic",
-    subtitle: "Take your time, enjoy each other",
-    image: vibeRomantic,
-    accent: "hsl(var(--secondary))",
-  },
-  {
-    id: "energetic",
-    label: "Fun & Energetic",
-    subtitle: "Dance, laugh, stay out late",
-    image: vibeEnergetic,
-    accent: "hsl(var(--accent))",
-  },
-  {
-    id: "new",
-    label: "Try Something New",
-    subtitle: "Surprise me with the unexpected",
-    image: vibeNew,
-    accent: "hsl(var(--primary))",
-  },
-  {
-    id: "cozy",
-    label: "Cozy & Intimate",
-    subtitle: "Warm corners, quiet conversations",
-    image: vibeCozy,
-    accent: "hsl(var(--secondary))",
-  },
-  {
-    id: "playful",
-    label: "Playful & Unexpected",
-    subtitle: "Quirky spots, weird fun",
-    image: vibePlayful,
-    accent: "hsl(var(--accent))",
-  },
+  { id: "creative", label: "Creative & Hands-on", subtitle: "Make something together", image: vibeCreative, accent: "hsl(var(--primary))" },
+  { id: "romantic", label: "Slow & Romantic", subtitle: "Take your time, enjoy each other", image: vibeRomantic, accent: "hsl(var(--secondary))" },
+  { id: "energetic", label: "Fun & Energetic", subtitle: "Dance, laugh, stay out late", image: vibeEnergetic, accent: "hsl(var(--accent))" },
+  { id: "new", label: "Try Something New", subtitle: "Surprise me with the unexpected", image: vibeNew, accent: "hsl(var(--primary))" },
+  { id: "cozy", label: "Cozy & Intimate", subtitle: "Warm corners, quiet conversations", image: vibeCozy, accent: "hsl(var(--secondary))" },
+  { id: "playful", label: "Playful & Unexpected", subtitle: "Quirky spots, weird fun", image: vibePlayful, accent: "hsl(var(--accent))" },
 ];
 
 const VibeSelect = () => {
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
-  const [exitDir, setExitDir] = useState<"left" | "right" | null>(null);
-  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [direction, setDirection] = useState(0);
+  const [touchStart, setTouchStart] = useState<{ x: number } | null>(null);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
 
-  const goNext = useCallback(() => {
-    if (current < vibes.length - 1) {
-      setExitDir("left");
-      setTimeout(() => {
-        setCurrent((c) => c + 1);
-        setExitDir(null);
-      }, 250);
-    }
+  const goTo = useCallback((index: number) => {
+    setDirection(index > current ? 1 : -1);
+    setCurrent(index);
   }, [current]);
 
+  const goNext = useCallback(() => {
+    if (current < vibes.length - 1) goTo(current + 1);
+  }, [current, goTo]);
+
   const goPrev = useCallback(() => {
-    if (current > 0) {
-      setExitDir("right");
-      setTimeout(() => {
-        setCurrent((c) => c - 1);
-        setExitDir(null);
-      }, 250);
-    }
-  }, [current]);
+    if (current > 0) goTo(current - 1);
+  }, [current, goTo]);
 
   const handleSelect = () => {
     navigate(`/preferences?vibe=${vibes[current].id}`);
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    setTouchStart({ x: e.touches[0].clientX });
     setIsDragging(true);
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     if (!touchStart) return;
-    const dx = e.touches[0].clientX - touchStart.x;
-    setDragX(dx);
+    setDragX(e.touches[0].clientX - touchStart.x);
   };
-
   const handleTouchEnd = () => {
     setIsDragging(false);
     if (dragX < -60) goNext();
@@ -102,17 +57,14 @@ const VibeSelect = () => {
     setDragX(0);
     setTouchStart(null);
   };
-
   const handleMouseDown = (e: React.MouseEvent) => {
-    setTouchStart({ x: e.clientX, y: e.clientY });
+    setTouchStart({ x: e.clientX });
     setIsDragging(true);
   };
-
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!isDragging || !touchStart) return;
     setDragX(e.clientX - touchStart.x);
   };
-
   const handleMouseUp = () => {
     if (!isDragging) return;
     setIsDragging(false);
@@ -125,17 +77,49 @@ const VibeSelect = () => {
   const vibe = vibes[current];
   const rotation = isDragging ? dragX * 0.04 : 0;
 
+  const cardVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 300 : -300,
+      rotate: dir > 0 ? 8 : -8,
+      opacity: 0,
+      scale: 0.9,
+    }),
+    center: {
+      x: 0,
+      rotate: 0,
+      opacity: 1,
+      scale: 1,
+      transition: { type: "spring", stiffness: 300, damping: 30 },
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? -300 : 300,
+      rotate: dir > 0 ? -8 : 8,
+      opacity: 0,
+      scale: 0.9,
+      transition: { duration: 0.25 },
+    }),
+  };
+
   return (
-    <div className="min-h-screen paper-texture flex flex-col overflow-hidden">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen paper-texture flex flex-col overflow-hidden"
+    >
       {/* Header */}
-      <header className="w-full max-w-md mx-auto px-6 pt-12 pb-1">
+      <motion.header
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.5 }}
+        className="w-full max-w-md mx-auto px-6 pt-12 pb-1"
+      >
         <h1 className="text-5xl font-display font-bold text-ink leading-none">
           Choose a vibe
         </h1>
         <p className="text-ink/35 font-body text-sm mt-2">
           Swipe to explore · Tap to choose
         </p>
-      </header>
+      </motion.header>
 
       {/* Card stack area */}
       <div
@@ -152,93 +136,96 @@ const VibeSelect = () => {
         {/* Background cards (stack effect) */}
         {vibes.map((v, i) => {
           const diff = i - current;
-          if (diff < 0 || diff > 2) return null;
-          if (diff === 0) return null; // rendered separately
-
+          if (diff < 1 || diff > 2) return null;
           return (
-            <div
+            <motion.div
               key={v.id}
               className="absolute inset-6 rounded-[24px] border-2 border-ink/8"
-              style={{
-                transform: `scale(${1 - diff * 0.06}) translateY(${diff * 14}px)`,
+              animate={{
+                scale: 1 - diff * 0.06,
+                y: diff * 14,
                 opacity: 1 - diff * 0.3,
-                zIndex: 10 - diff,
-                background: "hsl(var(--paper))",
-                transition: "all 0.3s ease",
               }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              style={{ zIndex: 10 - diff, background: "hsl(var(--paper))" }}
             />
           );
         })}
 
         {/* Active card */}
-        <div
-          className="relative w-full cursor-grab active:cursor-grabbing"
-          style={{
-            transform: exitDir
-              ? `translateX(${exitDir === "left" ? "-120%" : "120%"}) rotate(${exitDir === "left" ? "-12" : "12"}deg)`
-              : `translateX(${dragX}px) rotate(${rotation}deg)`,
-            opacity: exitDir ? 0 : 1,
-            transition: isDragging ? "none" : "all 0.3s cubic-bezier(0.22, 1, 0.36, 1)",
-            zIndex: 20,
-          }}
-        >
-          <button
-            onClick={handleSelect}
-            className="w-full text-left rounded-[24px] overflow-hidden border-2 border-ink/12 bg-paper shadow-xl hover:shadow-2xl transition-shadow"
-            style={{ borderRadius: "28px 22px 26px 24px" }}
+        <AnimatePresence custom={direction} mode="popLayout">
+          <motion.div
+            key={current}
+            custom={direction}
+            variants={cardVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            className="relative w-full cursor-grab active:cursor-grabbing"
+            style={{
+              transform: isDragging ? `translateX(${dragX}px) rotate(${rotation}deg)` : undefined,
+              transition: isDragging ? "none" : undefined,
+              zIndex: 20,
+            }}
           >
-            {/* Image */}
-            <div className="w-full aspect-[3/4] relative overflow-hidden">
-              <img
-                src={vibe.image}
-                alt={vibe.label}
-                className="absolute inset-0 w-full h-full object-cover"
-                draggable={false}
-              />
-              {/* Soft glow behind image */}
-              <div
-                className="absolute inset-0 opacity-10 blur-3xl"
-                style={{ background: vibe.accent }}
-              />
-            </div>
+            <motion.button
+              onClick={handleSelect}
+              className="w-full text-left rounded-[24px] overflow-hidden border-2 border-ink/12 bg-paper shadow-xl"
+              style={{ borderRadius: "28px 22px 26px 24px" }}
+              whileHover={{ boxShadow: "0 25px 50px -12px rgba(0,0,0,0.15)" }}
+              whileTap={{ scale: 0.98 }}
+            >
+              {/* Image */}
+              <div className="w-full aspect-[3/4] relative overflow-hidden">
+                <img
+                  src={vibe.image}
+                  alt={vibe.label}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  draggable={false}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+              </div>
 
-            {/* Text */}
-            <div className="px-6 py-5">
-              <h2 className="text-3xl font-display font-bold text-ink leading-tight">
-                {vibe.label}
-              </h2>
-              <p className="text-sm font-body text-ink/40 mt-1.5">
-                {vibe.subtitle}
-              </p>
-            </div>
-          </button>
-        </div>
+              {/* Text */}
+              <div className="px-6 py-5">
+                <h2 className="text-3xl font-display font-bold text-ink leading-tight">
+                  {vibe.label}
+                </h2>
+                <p className="text-sm font-body text-ink/40 mt-1.5">
+                  {vibe.subtitle}
+                </p>
+              </div>
+            </motion.button>
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       {/* Dots + counter */}
-      <footer className="w-full max-w-md mx-auto px-6 pb-10 pt-4 flex flex-col items-center gap-4">
-        {/* Dots */}
+      <motion.footer
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="w-full max-w-md mx-auto px-6 pb-10 pt-4 flex flex-col items-center gap-4"
+      >
         <div className="flex gap-2">
           {vibes.map((_, i) => (
-            <button
+            <motion.button
               key={i}
-              onClick={() => { setExitDir(i > current ? "left" : "right"); setTimeout(() => { setCurrent(i); setExitDir(null); }, 200); }}
-              className="transition-all duration-300"
-              style={{
+              onClick={() => goTo(i)}
+              animate={{
                 width: i === current ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
                 background: i === current ? "hsl(var(--ink))" : "hsl(var(--ink) / 0.15)",
               }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="h-2 rounded-full"
             />
           ))}
         </div>
-
         <p className="text-xs font-body text-ink/30">
           {current + 1} of {vibes.length}
         </p>
-      </footer>
-    </div>
+      </motion.footer>
+    </motion.div>
   );
 };
 
