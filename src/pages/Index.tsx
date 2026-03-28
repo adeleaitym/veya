@@ -6,77 +6,90 @@ import iconPin from "@/assets/icon-pin.png";
 
 const features = [
   { icon: iconPin, label: "Pick your vibe", desc: "Choose a mood and we design the night" },
-  { icon: iconNoodles, label: "Curated experiences", desc: "Dinner, drinks, activities — all planned for you" },
+  { icon: iconNoodles, label: "Curated stops", desc: "Dinner, drinks, activities — all planned" },
   { icon: iconCoffee, label: "Share & enjoy", desc: "Send it as a card, live it together" },
 ];
 
 const Index = () => {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen paper-texture flex flex-col items-center">
-      {/* Header */}
-      <header className="w-full max-w-md mx-auto px-6 pt-12 pb-2 text-center">
-        <h1 className="text-8xl font-display font-bold text-secondary leading-none">
+    <div className="min-h-screen paper-texture flex flex-col">
+      {/* Top bar */}
+      <header className="w-full max-w-md mx-auto px-6 pt-6 pb-0 flex items-center justify-between">
+        <h1 className="text-4xl font-display font-bold text-secondary leading-none">
           Veya
         </h1>
-        <p className="text-ink/40 text-xl font-display mt-2">
-          Curated evenings that just work ✦
-        </p>
+        <span className="text-ink/25 font-body text-xs tracking-widest uppercase">
+          Stockholm
+        </span>
       </header>
 
-      {/* Hero map */}
-      <section className="w-full max-w-md mx-auto px-5 mt-6">
-        <div className="sketch-border overflow-hidden tilt-2">
+      {/* Hero — full-width immersive */}
+      <section className="w-full max-w-md mx-auto px-4 mt-4">
+        <div className="relative rounded-3xl overflow-hidden shadow-xl">
           <img
             src={heroIllustration}
             alt="Illustrated character dancing in Stockholm tunnelbana"
             width={768}
             height={960}
-            className="w-full h-auto object-cover"
+            className="w-full h-[320px] object-cover object-center"
           />
+          {/* Gradient overlay for text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          {/* Overlay text */}
+          <div className="absolute bottom-0 left-0 right-0 px-5 pb-5">
+            <h2 className="text-3xl font-display font-bold text-white leading-tight drop-shadow-lg">
+              Curated evenings<br />that just work ✦
+            </h2>
+            <p className="font-body text-white/70 text-sm mt-1.5">
+              Swipe a vibe. Get a plan. Live it tonight.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* Features */}
-      <section className="w-full max-w-md mx-auto px-6 mt-10 space-y-4">
-        {features.map((f, i) => (
-          <div
-            key={f.label}
-            className={`zine-card flex items-center gap-5 p-5 animate-fade-up ${["tilt-1", "tilt-5", "tilt-3"][i]}`}
-            style={{ animationDelay: `${i * 150}ms`, animationFillMode: "backwards" }}
-          >
-            {i === 0 && <div className="tape-strip" />}
-            <div className="w-14 h-14 flex items-center justify-center flex-shrink-0 rounded-2xl bg-muted/20">
-              <img
-                src={f.icon}
-                alt={f.label}
-                width={40}
-                height={40}
-                loading="lazy"
-                className="w-10 h-10 object-contain"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className="font-display text-ink font-bold text-xl leading-snug">
+      {/* Quick features — horizontal scroll */}
+      <section className="w-full max-w-md mx-auto mt-6 px-4">
+        <div className="flex gap-3">
+          {features.map((f, i) => (
+            <div
+              key={f.label}
+              className="flex-1 min-w-0 rounded-2xl border-2 border-ink/8 bg-paper p-4 flex flex-col items-center text-center gap-2 animate-fade-up"
+              style={{ animationDelay: `${i * 100}ms`, animationFillMode: "backwards" }}
+            >
+              <div className="w-11 h-11 flex items-center justify-center rounded-xl bg-secondary/10">
+                <img
+                  src={f.icon}
+                  alt={f.label}
+                  width={28}
+                  height={28}
+                  loading="lazy"
+                  className="w-7 h-7 object-contain"
+                />
+              </div>
+              <h3 className="font-display text-ink font-bold text-base leading-tight">
                 {f.label}
               </h3>
-              <p className="text-sm font-body text-ink/45 mt-1 leading-relaxed">
+              <p className="text-[11px] font-body text-ink/40 leading-snug">
                 {f.desc}
               </p>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </section>
 
-      {/* CTA */}
-      <section className="w-full max-w-md mx-auto px-6 mt-12 mb-16">
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* CTA — sticky at bottom */}
+      <section className="w-full max-w-md mx-auto px-5 pb-8 pt-4">
         <button
           onClick={() => navigate("/vibes")}
-          className="w-full py-4 px-6 rounded-2xl text-primary-foreground font-body font-semibold text-lg tracking-wide shadow-lg shadow-primary/25 active:scale-[0.98] transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 bg-secondary"
+          className="zine-btn"
         >
-          Plan my night
+          Plan my night →
         </button>
-        <p className="text-center font-body text-ink/30 mt-4 text-sm">
+        <p className="text-center font-body text-ink/25 mt-3 text-xs">
           Evenings designed around your mood ✦
         </p>
       </section>
