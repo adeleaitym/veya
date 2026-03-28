@@ -67,12 +67,69 @@ const RouteView = () => {
     generateRoute();
   }, [vibe, where, budget, time, food]);
 
+  const loadingSteps = [
+    { emoji: "🗺️", text: "Exploring the neighborhood...", sub: "Scanning hidden gems nearby" },
+    { emoji: "🍷", text: "Picking the best spots...", sub: "Matching your vibe perfectly" },
+    { emoji: "✨", text: "Curating experiences...", sub: "Mixing food, culture & nightlife" },
+    { emoji: "🎨", text: "Designing your route...", sub: "Ordering stops for the perfect flow" },
+    { emoji: "🌙", text: "Almost there...", sub: "Putting the finishing touches" },
+  ];
+
+  const [loadingStep, setLoadingStep] = useState(0);
+
+  useEffect(() => {
+    if (!loading) return;
+    const interval = setInterval(() => {
+      setLoadingStep((prev) => (prev + 1) % loadingSteps.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [loading]);
+
   if (loading) {
+    const step = loadingSteps[loadingStep];
     return (
-      <div className="min-h-screen paper-texture flex flex-col items-center justify-center gap-4">
-        <div className="w-12 h-12 rounded-full border-3 border-ink/15 border-t-primary animate-spin" />
-        <p className="font-display text-2xl text-ink/60">Crafting your night...</p>
-        <p className="font-body text-sm text-ink/30">Finding the best spots</p>
+      <div className="min-h-screen paper-texture flex flex-col items-center justify-center px-8">
+        {/* Animated emoji */}
+        <div className="text-6xl mb-6 animate-float" key={loadingStep}>
+          {step.emoji}
+        </div>
+
+        {/* Progress dots */}
+        <div className="flex gap-2 mb-8">
+          {loadingSteps.map((_, i) => (
+            <div
+              key={i}
+              className={`h-2 rounded-full transition-all duration-500 ${
+                i <= loadingStep
+                  ? "w-6 bg-primary"
+                  : "w-2 bg-ink/15"
+              }`}
+            />
+          ))}
+        </div>
+
+        {/* Text */}
+        <p
+          className="font-display text-3xl text-ink text-center transition-opacity duration-300"
+          key={`text-${loadingStep}`}
+          style={{ animation: "fade-up 0.5s ease-out" }}
+        >
+          {step.text}
+        </p>
+        <p
+          className="font-body text-sm text-ink/40 mt-2 text-center"
+          key={`sub-${loadingStep}`}
+          style={{ animation: "fade-up 0.5s ease-out 0.1s both" }}
+        >
+          {step.sub}
+        </p>
+
+        {/* Fun tip */}
+        <div className="mt-12 zine-card max-w-xs text-center opacity-60">
+          <p className="font-body text-xs text-ink/50">
+            💡 Tip: {city} has {vibe.toLowerCase().includes("chill") ? "amazing rooftop bars" : "incredible hidden speakeasies"} worth exploring
+          </p>
+        </div>
       </div>
     );
   }
