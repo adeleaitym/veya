@@ -423,7 +423,7 @@ const CityVibes = () => {
             <h2 className="text-4xl font-display font-bold text-ink leading-tight ink-underline">
               {route.routeName}
             </h2>
-            <p className="text-sm font-body text-ink/40 mt-3 italic tilt-3">"{route.description}"</p>
+            <p className="text-sm font-accent text-ink/40 mt-3 italic tilt-3">"{route.description}"</p>
           </div>
 
           {/* Winding path */}
