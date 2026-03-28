@@ -38,29 +38,29 @@ const Index = () => {
       </section>
 
       {/* Features */}
-      <section className="w-full max-w-md mx-auto px-6 mt-10 space-y-5">
+      <section className="w-full max-w-md mx-auto px-6 mt-10 space-y-4">
         {features.map((f, i) => (
           <div
             key={f.label}
-            className={`zine-card flex items-start gap-4 animate-fade-up ${["tilt-1", "tilt-5", "tilt-3"][i]}`}
+            className={`zine-card flex items-center gap-5 p-5 animate-fade-up ${["tilt-1", "tilt-5", "tilt-3"][i]}`}
             style={{ animationDelay: `${i * 150}ms`, animationFillMode: "backwards" }}
           >
             {i === 0 && <div className="tape-strip" />}
-            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+            <div className="w-14 h-14 flex items-center justify-center flex-shrink-0 rounded-2xl bg-muted/20">
               <img
                 src={f.icon}
                 alt={f.label}
-                width={32}
-                height={32}
+                width={40}
+                height={40}
                 loading="lazy"
-                className="w-8 h-8 object-contain"
+                className="w-10 h-10 object-contain"
               />
             </div>
-            <div>
-              <h3 className="text-sm font-display text-ink font-bold text-lg">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-display text-ink font-bold text-xl leading-snug">
                 {f.label}
               </h3>
-              <p className="text-xs font-body text-ink/40 mt-0.5">
+              <p className="text-sm font-body text-ink/45 mt-1 leading-relaxed">
                 {f.desc}
               </p>
             </div>
