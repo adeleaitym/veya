@@ -48,7 +48,7 @@ Respond ONLY with valid JSON, no markdown, no explanation. Use this exact struct
       });
     }
 
-    const aiResp = await fetch("https://api.lovable.dev/v1/chat/completions", {
+    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${LOVABLE_API_KEY}`,
