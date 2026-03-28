@@ -31,7 +31,7 @@ serve(async (req) => {
 
     const fullMessage = `${systemContext}\n\nUser request: ${message}`;
 
-    // Create a conversation with Dust
+    // Create conversation with Dust — returns immediately with conversation ID
     const dustResp = await fetch(
       `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations`,
       {
@@ -69,52 +69,13 @@ serve(async (req) => {
     const conversationId = dustData.conversation?.sId;
 
     if (!conversationId) {
-      console.error("No conversation ID returned:", JSON.stringify(dustData));
+      console.error("No conversation ID:", JSON.stringify(dustData));
       throw new Error("Failed to create Dust conversation");
     }
 
-    // Poll for the agent's response
-    let assistantMessage = "";
-    const maxAttempts = 60; // up to 2 minutes
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      await new Promise((r) => setTimeout(r, 2000));
-
-      const pollResp = await fetch(
-        `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations/${conversationId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${DUST_API_KEY}`,
-          },
-        }
-      );
-
-      if (!pollResp.ok) {
-        const pollErr = await pollResp.text();
-        console.error("Poll error:", pollResp.status, pollErr);
-        continue;
-      }
-
-      const pollData = await pollResp.json();
-      const messages = pollData.conversation?.content || [];
-
-      // Find the last agent message
-      for (const messageGroup of messages) {
-        for (const msg of messageGroup) {
-          if (msg.type === "agent_message" && msg.status === "succeeded") {
-            assistantMessage = msg.content || "";
-          }
-        }
-      }
-
-      if (assistantMessage) break;
-    }
-
-    if (!assistantMessage) {
-      throw new Error("Dust agent did not respond in time");
-    }
-
+    // Return conversation ID immediately — client will poll
     return new Response(
-      JSON.stringify({ message: assistantMessage }),
+      JSON.stringify({ conversationId, status: "processing" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
