@@ -72,7 +72,7 @@ const Index = () => {
       <section className="w-full max-w-md mx-auto px-6 mt-12 mb-16">
         <button
           onClick={() => navigate("/vibes")}
-          className="w-full py-4 px-6 rounded-2xl bg-primary text-primary-foreground font-body font-semibold text-lg tracking-wide shadow-lg shadow-primary/25 active:scale-[0.98] transition-all duration-200 hover:shadow-xl hover:shadow-primary/30"
+          className="w-full py-4 px-6 rounded-2xl text-primary-foreground font-body font-semibold text-lg tracking-wide shadow-lg shadow-primary/25 active:scale-[0.98] transition-all duration-200 hover:shadow-xl hover:shadow-primary/30 bg-secondary"
         >
           Plan my night
         </button>
