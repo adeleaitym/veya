@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useCallback } from "react";
-import vibeCreative from "@/assets/vibe-creative.png";
-import vibeRomantic from "@/assets/vibe-romantic.png";
-import vibeEnergetic from "@/assets/vibe-energetic.png";
-import vibeNew from "@/assets/vibe-new.png";
-import vibeCozy from "@/assets/vibe-cozy.png";
-import vibePlayful from "@/assets/vibe-playful.png";
+import vibeCreative from "@/assets/vibe-creative.jpg";
+import vibeRomantic from "@/assets/vibe-romantic.jpg";
+import vibeEnergetic from "@/assets/vibe-energetic.jpg";
+import vibeNew from "@/assets/vibe-new.jpg";
+import vibeCozy from "@/assets/vibe-cozy.jpg";
+import vibePlayful from "@/assets/vibe-playful.jpg";
 
 const vibes = [
   {
