@@ -49,6 +49,7 @@ const CityVibes = () => {
   const cityName = cityNameMap[cityId || ""] || cityId || "";
 
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
+  const [freePrompt, setFreePrompt] = useState("");
   const [groupSize, setGroupSize] = useState<string | null>(null);
   const [budget, setBudget] = useState<string | null>(null);
   const [area, setArea] = useState<string | null>(null);
@@ -60,7 +61,7 @@ const CityVibes = () => {
   const [loadingPoster, setLoadingPoster] = useState(false);
 
   const cityAreas = areas[cityId || ""] || null;
-  const canSubmit = selectedVibe && groupSize && budget;
+  const canSubmit = (selectedVibe || freePrompt.trim()) && groupSize && budget;
 
   const handleCreate = async () => {
     if (!canSubmit) return;
@@ -68,7 +69,10 @@ const CityVibes = () => {
 
     const vibeName = vibes.find((v) => v.id === selectedVibe)?.label || selectedVibe;
     const budgetName = budgetLabels[budget || ""] || budget;
-    const prompt = `I'm in ${cityName}${area && area !== "Surprise me" ? `, specifically ${area}` : ""}. I want a ${vibeName} vibe evening for ${groupSize} ${groupSize === "1" ? "person" : "people"} on a ${budgetName?.toLowerCase()} budget. Create me a perfect food journey!`;
+    const vibeDescription = freePrompt.trim()
+      ? freePrompt.trim()
+      : `a ${vibeName} vibe`;
+    const prompt = `I'm in ${cityName}${area && area !== "Surprise me" ? `, specifically ${area}` : ""}. I want ${vibeDescription} evening for ${groupSize} ${groupSize === "1" ? "person" : "people"} on a ${budgetName?.toLowerCase()} budget. Plan a perfect evening route — this can include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment, or anything that makes a great night out!`;
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-route", {
@@ -121,6 +125,7 @@ const CityVibes = () => {
   };
 
   const resetAll = () => {
+    setFreePrompt("");
     setSelectedVibe(null);
     setGroupSize(null);
     setBudget(null);
@@ -179,19 +184,41 @@ const CityVibes = () => {
             </p>
           </div>
 
+          {/* Free prompt search */}
+          <div className="space-y-3">
+            <h2 className="text-3xl font-display font-bold text-ink tilt-2">
+              Describe your perfect evening
+            </h2>
+            <div className="sketch-border-light bg-paper px-4 py-3">
+              <textarea
+                value={freePrompt}
+                onChange={(e) => setFreePrompt(e.target.value)}
+                placeholder="e.g. Jazz bar hopping with craft cocktails, ending at a rooftop with a view..."
+                rows={2}
+                className="w-full bg-transparent font-body text-sm text-ink placeholder:text-ink/25 resize-none focus:outline-none leading-relaxed"
+              />
+            </div>
+            <p className="text-xs font-display text-ink/30 tilt-5">
+              or pick a vibe below ↓
+            </p>
+          </div>
+
           <div className="ink-divider" />
 
-          {/* Vibe — the star section */}
+          {/* Vibe — quick picks */}
           <div className="space-y-4">
             <h2 className="text-3xl font-display font-bold text-ink tilt-6">
-              Pick your mood
+              Pick your vibe
             </h2>
             <div className="flex flex-wrap gap-2.5">
               {vibes.map((vibe, i) => (
                 <button
                   key={vibe.id}
-                  onClick={() => setSelectedVibe(vibe.id)}
-                  className={`zine-sticker ${selectedVibe === vibe.id ? "selected" : ""} ${tiltClasses[i % tiltClasses.length]}`}
+                  onClick={() => {
+                    setSelectedVibe(vibe.id);
+                    setFreePrompt("");
+                  }}
+                  className={`zine-sticker ${selectedVibe === vibe.id && !freePrompt ? "selected" : ""} ${tiltClasses[i % tiltClasses.length]}`}
                 >
                   <span>{vibe.emoji}</span>
                   <span>{vibe.label}</span>
