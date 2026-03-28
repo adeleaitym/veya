@@ -11,6 +11,7 @@ const features = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background flex flex-col items-center">
       {/* Header */}
