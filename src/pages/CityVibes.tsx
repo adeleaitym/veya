@@ -1,171 +1,164 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useRef, useState, useEffect } from "react";
 
-import vibeDateNight from "@/assets/vibe-date-night.jpg";
-import vibeSoloAdventure from "@/assets/vibe-solo-adventure.jpg";
-import vibeSundayBrunch from "@/assets/vibe-sunday-brunch.jpg";
-import vibeStreetFood from "@/assets/vibe-street-food.jpg";
-import vibeHiddenGems from "@/assets/vibe-hidden-gems.jpg";
-import vibeRooftop from "@/assets/vibe-rooftop.jpg";
-import vibeLocalMarkets from "@/assets/vibe-local-markets.jpg";
-import vibeBakery from "@/assets/vibe-bakery.jpg";
+import iconDateNight from "@/assets/icon-date-night.png";
+import iconSoloAdventure from "@/assets/icon-solo-adventure.png";
+import iconBrunch from "@/assets/icon-brunch.png";
+import iconStreetFood from "@/assets/icon-street-food.png";
+import iconHiddenGems from "@/assets/icon-hidden-gems.png";
+import iconRooftop from "@/assets/icon-rooftop.png";
+import iconMarkets from "@/assets/icon-markets.png";
+import iconBakery from "@/assets/icon-bakery.png";
 
-const cityNames: Record<string, string> = {
-  stockholm: "Stockholm",
-  paris: "Paris",
-  london: "London",
-  tokyo: "Tokyo",
-  barcelona: "Barcelona",
-  istanbul: "Istanbul",
-  "new-york": "New York",
-  "mexico-city": "Mexico City",
-  marrakech: "Marrakech",
-  bangkok: "Bangkok",
+const cityNames: Record<string, { name: string; tagline: string }> = {
+  stockholm: { name: "Stockholm", tagline: "Nordic flavours between the islands" },
+  paris: { name: "Paris", tagline: "Every corner hides a craving" },
+  london: { name: "London", tagline: "A melting pot on every street" },
+  tokyo: { name: "Tokyo", tagline: "Precision meets soul in every bite" },
+  barcelona: { name: "Barcelona", tagline: "Sun-drenched plates by the sea" },
+  istanbul: { name: "Istanbul", tagline: "Where continents collide on a plate" },
+  "new-york": { name: "New York", tagline: "The city that never stops eating" },
+  "mexico-city": { name: "Mexico City", tagline: "Layered flavours, deep roots" },
+  marrakech: { name: "Marrakech", tagline: "Spice-kissed streets and rooftop feasts" },
+  bangkok: { name: "Bangkok", tagline: "Heat, sweet, sour — all at once" },
 };
 
 const vibes = [
-  {
-    id: "date-night",
-    label: "Date night",
-    tagline: "The city slows down after dark",
-    img: vibeDateNight,
-  },
-  {
-    id: "solo-adventure",
-    label: "Solo adventure",
-    tagline: "Get lost on purpose",
-    img: vibeSoloAdventure,
-  },
-  {
-    id: "sunday-brunch",
-    label: "Sunday brunch",
-    tagline: "Morning light and warm pastries",
-    img: vibeSundayBrunch,
-  },
-  {
-    id: "street-food",
-    label: "Street food",
-    tagline: "Follow the smoke and the crowd",
-    img: vibeStreetFood,
-  },
-  {
-    id: "hidden-gems",
-    label: "Hidden gems",
-    tagline: "Behind the unmarked door",
-    img: vibeHiddenGems,
-  },
-  {
-    id: "rooftop-views",
-    label: "Rooftop views",
-    tagline: "Sip above the skyline",
-    img: vibeRooftop,
-  },
-  {
-    id: "local-markets",
-    label: "Local markets",
-    tagline: "Taste what the locals taste",
-    img: vibeLocalMarkets,
-  },
-  {
-    id: "bakery-hopping",
-    label: "Bakery hopping",
-    tagline: "One croissant is never enough",
-    img: vibeBakery,
-  },
+  { id: "date-night", label: "Date night", tagline: "The city slows down after dark", icon: iconDateNight },
+  { id: "solo-adventure", label: "Solo adventure", tagline: "Get lost on purpose", icon: iconSoloAdventure },
+  { id: "sunday-brunch", label: "Sunday brunch", tagline: "Morning light, warm pastries", icon: iconBrunch },
+  { id: "street-food", label: "Street food", tagline: "Follow the smoke", icon: iconStreetFood },
+  { id: "hidden-gems", label: "Hidden gems", tagline: "Behind the unmarked door", icon: iconHiddenGems },
+  { id: "rooftop-views", label: "Rooftop views", tagline: "Sip above the skyline", icon: iconRooftop },
+  { id: "local-markets", label: "Local markets", tagline: "Taste what the locals taste", icon: iconMarkets },
+  { id: "bakery-hopping", label: "Bakery hopping", tagline: "One croissant is never enough", icon: iconBakery },
+];
+
+// Positions along the winding path — alternating left/right
+const vibePositions = [
+  { x: "72%", y: "6%" },
+  { x: "12%", y: "18%" },
+  { x: "65%", y: "28%" },
+  { x: "8%",  y: "38%" },
+  { x: "62%", y: "48%" },
+  { x: "10%", y: "58%" },
+  { x: "60%", y: "68%" },
+  { x: "15%", y: "78%" },
 ];
 
 const CityVibes = () => {
   const { cityId } = useParams<{ cityId: string }>();
   const navigate = useNavigate();
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const cityName = cityNames[cityId || ""] || cityId;
-
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const scrollTop = container.scrollTop;
-      const cardHeight = container.clientHeight;
-      const index = Math.round(scrollTop / cardHeight);
-      setActiveIndex(Math.min(index, vibes.length - 1));
-    };
-
-    container.addEventListener("scroll", handleScroll, { passive: true });
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
+  const city = cityNames[cityId || ""] || { name: cityId, tagline: "" };
 
   return (
-    <div className="h-screen w-full bg-background flex flex-col overflow-hidden">
-      {/* Fixed header */}
-      <header className="absolute top-0 left-0 right-0 z-20 px-6 pt-8 pb-4 bg-gradient-to-b from-background/95 via-background/70 to-transparent">
-        <div className="max-w-md mx-auto flex items-center justify-between">
-          <button
-            onClick={() => navigate("/cities")}
-            className="text-foreground/80 font-body text-sm hover:text-foreground transition-colors"
-          >
-            ← {cityName}
-          </button>
-          {/* Dot indicators */}
-          <div className="flex gap-1.5">
-            {vibes.map((_, i) => (
-              <div
-                key={i}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  i === activeIndex
-                    ? "bg-foreground scale-125"
-                    : "bg-foreground/30"
-                }`}
-              />
-            ))}
-          </div>
-        </div>
+    <div className="min-h-screen bg-secondary flex flex-col">
+      {/* Header */}
+      <header className="w-full max-w-md mx-auto px-6 pt-8 pb-2 relative z-10">
+        <button
+          onClick={() => navigate("/cities")}
+          className="text-foreground/70 font-body text-sm mb-3 hover:text-foreground transition-colors"
+        >
+          ← Back
+        </button>
+        <h1 className="text-4xl font-display font-bold text-foreground leading-none">
+          {city.name}
+        </h1>
+        <p className="text-foreground/80 leading-none text-base font-serif font-thin mt-1">
+          {city.tagline}
+        </p>
+        <p className="text-foreground/50 font-body text-xs uppercase tracking-widest mt-4">
+          Choose your vibe
+        </p>
       </header>
 
-      {/* Snap-scroll vibe cards */}
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto snap-y snap-mandatory"
-        style={{ scrollBehavior: "smooth" }}
-      >
-        {vibes.map((vibe) => (
-          <div
-            key={vibe.id}
-            className="h-screen w-full snap-start snap-always relative flex flex-col"
-          >
-            {/* Full-bleed illustration */}
-            <div className="absolute inset-0">
-              <img
-                src={vibe.img}
-                alt={vibe.label}
-                className="w-full h-full object-cover"
-              />
-              {/* Gradient overlay for text readability */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-            </div>
+      {/* Poster-style illustrated path */}
+      <section className="w-full max-w-md mx-auto relative" style={{ height: "1200px" }}>
+        {/* Winding pink ribbon SVG */}
+        <svg
+          className="absolute inset-0 w-full h-full"
+          viewBox="0 0 390 1200"
+          fill="none"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M 310 60 
+               C 310 120, 80 120, 80 200 
+               C 80 280, 300 280, 300 360 
+               C 300 440, 70 440, 70 520 
+               C 70 600, 290 600, 290 680 
+               C 290 760, 80 760, 80 840 
+               C 80 920, 280 920, 280 1000
+               C 280 1080, 100 1080, 100 1160"
+            stroke="hsl(352, 58%, 78%)"
+            strokeWidth="38"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.7"
+          />
+          <path
+            d="M 310 60 
+               C 310 120, 80 120, 80 200 
+               C 80 280, 300 280, 300 360 
+               C 300 440, 70 440, 70 520 
+               C 70 600, 290 600, 290 680 
+               C 290 760, 80 760, 80 840 
+               C 80 920, 280 920, 280 1000
+               C 280 1080, 100 1080, 100 1160"
+            stroke="hsl(352, 58%, 84%)"
+            strokeWidth="22"
+            strokeLinecap="round"
+            fill="none"
+            opacity="0.5"
+          />
+        </svg>
 
-            {/* Bottom content */}
-            <div className="relative mt-auto px-6 pb-12 max-w-md mx-auto w-full">
-              <p className="text-white/70 font-body text-sm tracking-wide uppercase mb-1">
-                Choose your vibe
-              </p>
-              <h2 className="text-4xl font-display font-bold text-white leading-tight">
-                {vibe.label}
-              </h2>
-              <p className="text-white/80 font-serif font-thin text-lg mt-1 italic">
-                {vibe.tagline}
-              </p>
-              <button
-                onClick={() => navigate(`/city/${cityId}/vibe/${vibe.id}`)}
-                className="mt-5 w-full py-3.5 rounded-full bg-primary text-primary-foreground font-body font-semibold text-base shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
-              >
-                Explore this vibe →
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+        {/* Vibe stops along the path */}
+        {vibes.map((vibe, i) => {
+          const pos = vibePositions[i];
+          const isLeft = parseFloat(pos.x) < 40;
+
+          return (
+            <button
+              key={vibe.id}
+              onClick={() => navigate(`/city/${cityId}/vibe/${vibe.id}`)}
+              className="absolute group"
+              style={{
+                left: pos.x,
+                top: pos.y,
+                transform: "translate(-50%, 0)",
+              }}
+            >
+              {/* Icon */}
+              <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/90 shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-200 mx-auto">
+                <img
+                  src={vibe.icon}
+                  alt={vibe.label}
+                  width={512}
+                  height={512}
+                  loading="lazy"
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
+              {/* Label */}
+              <div className={`mt-1.5 ${isLeft ? "text-left" : "text-center"}`}>
+                <p className="text-sm font-display font-bold text-foreground leading-tight whitespace-nowrap">
+                  {vibe.label}
+                </p>
+                <p className="text-[10px] font-body text-foreground/60 leading-tight whitespace-nowrap">
+                  {vibe.tagline}
+                </p>
+              </div>
+            </button>
+          );
+        })}
+
+        {/* Decorative small elements */}
+        <div className="absolute top-[14%] left-[50%] text-foreground/20 text-lg">✦</div>
+        <div className="absolute top-[34%] right-[15%] text-foreground/15 text-sm">✦</div>
+        <div className="absolute top-[54%] left-[42%] text-foreground/20 text-base">✦</div>
+        <div className="absolute top-[74%] right-[30%] text-foreground/15 text-lg">✦</div>
+        <div className="absolute top-[90%] left-[50%] text-foreground/20 text-sm">✦</div>
+      </section>
     </div>
   );
 };
