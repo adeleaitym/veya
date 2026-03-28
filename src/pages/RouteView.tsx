@@ -185,24 +185,34 @@ const RouteView = () => {
                 className="relative w-full text-left pl-14 pr-2 py-4 group"
               >
                 {/* Dot */}
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-paper border-2 border-ink/20 flex items-center justify-center text-xs z-10 group-hover:border-primary group-hover:bg-primary/10 transition-colors">
-                  <span>{stopIcons[stop.type] || "📍"}</span>
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-paper border-2 flex items-center justify-center z-10 group-hover:scale-110 transition-all"
+                  style={{ borderColor: `${stopColors[stop.type] || '#999'}60` }}
+                >
+                  {(() => { const Icon = stopIconMap[stop.type] || MapPin; return <Icon size={14} color={stopColors[stop.type] || '#999'} strokeWidth={2} />; })()}
                 </div>
 
                 <div className="zine-card group-hover:border-ink/25 transition-colors">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex-1">
-                      <h3 className="font-display text-xl font-bold text-ink leading-snug">
-                        {stop.name}
-                      </h3>
-                      <p className="font-body text-xs text-ink/40 mt-1">
-                        {stop.description}
-                      </p>
-                    </div>
-                    <span className="text-xs font-body text-ink/30 whitespace-nowrap mt-1">
+                  {/* Activity tag */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-body text-[10px] font-semibold uppercase tracking-wide"
+                      style={{
+                        background: `${stopColors[stop.type] || '#999'}12`,
+                        color: stopColors[stop.type] || '#999',
+                      }}
+                    >
+                      {stopLabels[stop.type] || stop.type}
+                    </span>
+                    <span className="text-[10px] font-body text-ink/25">
                       {stop.duration}
                     </span>
                   </div>
+                  <h3 className="font-display text-xl font-bold text-ink leading-snug">
+                    {stop.name}
+                  </h3>
+                  <p className="font-body text-xs text-ink/40 mt-1 line-clamp-2">
+                    {stop.description}
+                  </p>
                 </div>
               </button>
             ))}
