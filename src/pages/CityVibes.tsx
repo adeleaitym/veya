@@ -125,6 +125,7 @@ const CityVibes = () => {
   };
 
   const resetAll = () => {
+    setFreePrompt("");
     setSelectedVibe(null);
     setGroupSize(null);
     setBudget(null);
