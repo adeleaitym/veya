@@ -47,8 +47,10 @@ serve(async (req) => {
           },
           body: JSON.stringify({
             content: userContent,
+            mentions: [],
             context: {
               timezone: "UTC",
+              username: "veya-user",
               profilePictureUrl: null,
               fullName: "Veya User",
               email: null,
