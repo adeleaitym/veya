@@ -123,9 +123,33 @@ const CityVibes = () => {
       });
       if (error) throw error;
 
-      const content = data?.route || "";
-      const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, content];
-      const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || content);
+      let routeContent = "";
+
+      if (data?.route) {
+        // Direct response (Google AI)
+        routeContent = data.route;
+      } else if (data?.conversationId) {
+        // Async response (Dust) — poll for completion
+        const conversationId = data.conversationId;
+        for (let i = 0; i < 60; i++) {
+          await new Promise((r) => setTimeout(r, 2000));
+          const { data: pollData, error: pollError } = await supabase.functions.invoke("poll-route", {
+            body: { conversationId },
+          });
+          if (pollError) throw pollError;
+          if (pollData?.status === "completed" && pollData?.message) {
+            routeContent = pollData.message;
+            break;
+          }
+          if (pollData?.status === "failed") throw new Error("Route generation failed");
+        }
+        if (!routeContent) throw new Error("Route generation timed out");
+      } else {
+        throw new Error("No route data returned");
+      }
+
+      const jsonMatch = routeContent.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, routeContent];
+      const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || routeContent);
       setRoute(parsed);
       setPhase("route");
       generateStopImages(parsed.stops);

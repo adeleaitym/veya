@@ -21,51 +21,79 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
     const systemPrompt = `You are Veya, an evening route planner AI. The user is exploring ${city || "a city"}. Based on their preferences, generate a curated evening route with 4-6 specific stops. Include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment — anything that makes a great night out! For each stop provide: a name (real-sounding venue names), a type (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack), a short vivid description (1 sentence max), and an estimated duration. Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure: {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string","description":"string","duration":"string"}]}`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-      }),
-    });
-
-    if (!aiResp.ok) {
-      const errText = await aiResp.text();
-      console.error("AI gateway error:", aiResp.status, errText);
-
-      if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limited. Try again shortly." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    // Try Google AI first (fast, direct response)
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (GOOGLE_AI_API_KEY) {
+      try {
+        const aiResp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\nUser request: ${message}` }] }],
+              generationConfig: { responseMimeType: "application/json" },
+            }),
+          }
         );
-      }
-      if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
 
-      throw new Error(`AI error [${aiResp.status}]`);
+        if (aiResp.ok) {
+          const aiData = await aiResp.json();
+          const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          if (content) {
+            return new Response(
+              JSON.stringify({ route: content }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        } else {
+          const errText = await aiResp.text();
+          console.error("Google AI failed:", aiResp.status, errText.substring(0, 200));
+        }
+      } catch (e) {
+        console.error("Google AI error:", e);
+      }
     }
 
-    const aiData = await aiResp.json();
-    const content = aiData.choices?.[0]?.message?.content || "";
+    // Fallback: Start Dust conversation (async — client will poll)
+    const DUST_API_KEY = Deno.env.get("DUST_API_KEY");
+    const DUST_WORKSPACE_ID = Deno.env.get("DUST_WORKSPACE_ID");
+    if (!DUST_API_KEY || !DUST_WORKSPACE_ID) throw new Error("No AI provider available");
+
+    const dustResp = await fetch(
+      `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${DUST_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: {
+            content: `${systemPrompt}\n\nUser request: ${message}`,
+            mentions: [{ configurationId: "MapAnimator" }],
+            context: { timezone: "UTC", profilePictureUrl: null, fullName: "Veya User", email: null, username: "veya-user", origin: "api" },
+          },
+          visibility: "unlisted",
+          title: `Route: ${city}`,
+        }),
+      }
+    );
+
+    if (!dustResp.ok) {
+      const errText = await dustResp.text();
+      console.error("Dust error:", dustResp.status, errText);
+      throw new Error(`Dust error [${dustResp.status}]`);
+    }
+
+    const dustData = await dustResp.json();
+    const conversationId = dustData.conversation?.sId;
+    if (!conversationId) throw new Error("No Dust conversation ID");
 
     return new Response(
-      JSON.stringify({ route: content }),
+      JSON.stringify({ conversationId, status: "processing" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {
