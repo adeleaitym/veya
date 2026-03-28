@@ -17,7 +17,7 @@ const Index = () => {
         <h1 className="text-7xl font-display font-bold text-foreground leading-none">
           Veya
         </h1>
-        <p className="mt-3 text-base font-body text-muted-foreground leading-relaxed">
+        <p className="text-foreground leading-none text-lg font-serif font-thin">
           Curated city journeys<br />through food
         </p>
       </header>
