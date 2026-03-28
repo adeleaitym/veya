@@ -13,59 +13,134 @@ const stopEmoji: Record<string, string> = {
   main: "🍽️", dessert: "🍰", snack: "🥨", experience: "✨",
 };
 
-function generateSVGPoster(routeName: string, city: string, stops: any[]): string {
-  const colors = ["#E8485C", "#F5A623", "#4ECDC4", "#7B68EE", "#FF6B9D", "#45B7D1"];
+const accentColors = ["#C75B3A", "#8B4F6E", "#2A7B6F", "#D4943A", "#5B7FA5", "#6B8E5A"];
 
+function wrapText(text: string, maxChars: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    if (current.length + word.length + 1 > maxChars) {
+      lines.push(current.trim());
+      current = word + ' ';
+    } else {
+      current += word + ' ';
+    }
+  }
+  if (current.trim()) lines.push(current.trim());
+  return lines.slice(0, 2); // max 2 lines
+}
+
+function generateSVGPoster(routeName: string, city: string, stops: any[]): string {
+  const W = 420;
+  const headerH = 240;
+  const stopH = 130;
+  const footerH = 100;
+  const totalH = headerH + stops.length * stopH + footerH;
+
+  // Build stop cards
   const stopsMarkup = stops.map((s: any, i: number) => {
-    const y = 280 + i * 110;
-    const color = colors[i % colors.length];
+    const y = headerH + i * stopH;
+    const color = accentColors[i % accentColors.length];
     const emoji = stopEmoji[s.type] || "📍";
+    const nameLines = wrapText(s.name, 26);
+    const descLines = wrapText((s.description || '').substring(0, 90), 38);
+
+    const nameMarkup = nameLines.map((line, li) =>
+      `<text x="78" y="${y + 38 + li * 20}" font-family="Georgia, serif" font-size="15" font-weight="bold" fill="#2a2a2a">${escapeXml(line)}</text>`
+    ).join('');
+
+    const descY = y + 38 + nameLines.length * 20 + 4;
+    const descMarkup = descLines.map((line, li) =>
+      `<text x="78" y="${descY + li * 16}" font-family="system-ui, sans-serif" font-size="11" fill="#777">${escapeXml(line)}</text>`
+    ).join('');
+
     return `
-      <circle cx="60" cy="${y}" r="18" fill="${color}" opacity="0.15"/>
-      <circle cx="60" cy="${y}" r="10" fill="${color}"/>
-      <text x="60" y="${y + 5}" text-anchor="middle" font-size="10">${emoji}</text>
-      ${i < stops.length - 1 ? `<line x1="60" y1="${y + 18}" x2="60" y2="${y + 92}" stroke="${color}" stroke-width="2" stroke-dasharray="4,4" opacity="0.3"/>` : ''}
-      <text x="90" y="${y - 6}" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#1a1a1a">${escapeXml(s.name)}</text>
-      <text x="90" y="${y + 12}" font-family="system-ui, sans-serif" font-size="11" fill="#888">${escapeXml((s.description || '').substring(0, 50))}${(s.description || '').length > 50 ? '…' : ''}</text>
-      <text x="340" y="${y}" font-family="system-ui, sans-serif" font-size="10" fill="#aaa" text-anchor="end">${escapeXml(s.duration || '')}</text>
+      <!-- Stop ${i + 1} background -->
+      <rect x="24" y="${y + 10}" width="${W - 48}" height="${stopH - 20}" rx="14" fill="white" opacity="0.7"/>
+      <rect x="24" y="${y + 10}" width="${W - 48}" height="${stopH - 20}" rx="14" fill="none" stroke="${color}" stroke-width="1" opacity="0.2"/>
+      
+      <!-- Number badge -->
+      <circle cx="48" cy="${y + 40}" r="14" fill="${color}" opacity="0.12"/>
+      <text x="48" y="${y + 45}" text-anchor="middle" font-family="Georgia, serif" font-size="13" font-weight="bold" fill="${color}">${i + 1}</text>
+      
+      <!-- Connector line -->
+      ${i < stops.length - 1 ? `<line x1="48" y1="${y + 54}" x2="48" y2="${y + stopH + 26}" stroke="${color}" stroke-width="1.5" stroke-dasharray="3,5" opacity="0.25"/>` : ''}
+      
+      <!-- Content -->
+      ${nameMarkup}
+      ${descMarkup}
+      
+      <!-- Duration pill -->
+      <rect x="${W - 110}" y="${y + 18}" width="70" height="22" rx="11" fill="${color}" opacity="0.08"/>
+      <text x="${W - 75}" y="${y + 33}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="${color}" font-weight="600">${escapeXml(s.duration || '')}</text>
+      
+      <!-- Emoji -->
+      <text x="${W - 50}" y="${y + stopH - 20}" font-size="18" text-anchor="middle" opacity="0.4">${emoji}</text>
     `;
   }).join('');
 
-  const height = 320 + stops.length * 110;
+  // Title handling — wrap long titles
+  const titleLines = wrapText(routeName, 24);
+  const titleMarkup = titleLines.map((line, i) =>
+    `<text x="${W / 2}" y="${115 + i * 32}" text-anchor="middle" font-family="Georgia, serif" font-size="26" font-weight="bold" fill="#2a2a2a">${escapeXml(line)}</text>`
+  ).join('');
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 ${height}" width="380" height="${height}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${totalH}" width="${W}" height="${totalH}">
     <defs>
-      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="#FFF8F0"/>
-        <stop offset="100%" stop-color="#FFF0E6"/>
+      <linearGradient id="bg" x1="0" y1="0" x2="0.3" y2="1">
+        <stop offset="0%" stop-color="#FDF6EE"/>
+        <stop offset="50%" stop-color="#FFF8F2"/>
+        <stop offset="100%" stop-color="#F9F0E5"/>
+      </linearGradient>
+      <linearGradient id="headerGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#2A5A4A" stop-opacity="0.06"/>
+        <stop offset="100%" stop-color="#2A5A4A" stop-opacity="0"/>
       </linearGradient>
     </defs>
-    <rect width="380" height="${height}" fill="url(#bg)" rx="20"/>
-    <rect x="6" y="6" width="368" height="${height - 12}" fill="none" stroke="#e0d5c8" stroke-width="1" rx="16" stroke-dasharray="6,4"/>
     
-    <!-- Header -->
-    <text x="190" y="55" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#c4956a" letter-spacing="4">YOUR EVENING</text>
-    <text x="190" y="110" text-anchor="middle" font-family="Georgia, serif" font-size="26" font-weight="bold" fill="#1a1a1a">${escapeXml(truncate(routeName, 28))}</text>
-    ${city ? `<text x="190" y="140" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#999">${escapeXml(city)}</text>` : ''}
+    <!-- Background -->
+    <rect width="${W}" height="${totalH}" fill="url(#bg)" rx="24"/>
     
-    <line x1="140" y1="165" x2="240" y2="165" stroke="#ddd" stroke-width="1"/>
+    <!-- Subtle border -->
+    <rect x="8" y="8" width="${W - 16}" height="${totalH - 16}" fill="none" stroke="#d8ccbe" stroke-width="0.8" rx="20"/>
     
-    <text x="190" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#bbb" letter-spacing="3">${stops.length} STOPS</text>
+    <!-- Header area -->
+    <rect x="8" y="8" width="${W - 16}" height="200" fill="url(#headerGrad)" rx="20"/>
+    
+    <!-- Decorative dots -->
+    <circle cx="50" cy="40" r="3" fill="#C75B3A" opacity="0.15"/>
+    <circle cx="65" cy="48" r="2" fill="#2A7B6F" opacity="0.15"/>
+    <circle cx="${W - 50}" cy="45" r="2.5" fill="#D4943A" opacity="0.15"/>
+    <circle cx="${W - 70}" cy="35" r="2" fill="#8B4F6E" opacity="0.15"/>
+    
+    <!-- YOUR EVENING label -->
+    <text x="${W / 2}" y="60" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#b8a08a" letter-spacing="5" font-weight="600">YOUR EVENING</text>
+    
+    <!-- Decorative line -->
+    <line x1="${W / 2 - 30}" y1="75" x2="${W / 2 + 30}" y2="75" stroke="#d8ccbe" stroke-width="0.8"/>
+    
+    <!-- Route title -->
+    ${titleMarkup}
+    
+    <!-- City + stops info -->
+    ${city ? `<text x="${W / 2}" y="${115 + titleLines.length * 32 + 8}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#aaa">${escapeXml(city)}  ·  ${stops.length} stops</text>` : ''}
+    
+    <!-- Divider -->
+    <line x1="60" y1="${headerH - 15}" x2="${W - 60}" y2="${headerH - 15}" stroke="#e5ddd3" stroke-width="0.6"/>
     
     <!-- Stops -->
     ${stopsMarkup}
     
     <!-- Footer -->
-    <text x="190" y="${height - 35}" text-anchor="middle" font-family="Georgia, serif" font-size="20" font-weight="bold" fill="#c4956a">Veya ✦</text>
+    <line x1="100" y1="${totalH - 75}" x2="${W - 100}" y2="${totalH - 75}" stroke="#e5ddd3" stroke-width="0.6"/>
+    <text x="${W / 2}" y="${totalH - 42}" text-anchor="middle" font-family="Georgia, serif" font-size="22" font-weight="bold" fill="#2A5A4A">Veya</text>
+    <text x="${W / 2}" y="${totalH - 22}" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#c4b09a" letter-spacing="3">CURATED EVENINGS</text>
   </svg>`;
 }
 
 function escapeXml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function truncate(s: string, max: number): string {
-  return s.length > max ? s.substring(0, max - 1) + '…' : s;
 }
 
 async function generateWithDust(routeName: string, city: string, stops: any[]): Promise<{ imageUrl?: string; textContent?: string }> {
