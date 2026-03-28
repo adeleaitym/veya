@@ -263,87 +263,67 @@ const CityVibes = () => {
             </p>
           </div>
 
-          {/* Prompt + Quick Submit */}
-          <div className="space-y-3">
-            <div className="sketch-border-light bg-paper px-4 py-3">
-              <textarea
-                value={freePrompt}
-                onChange={(e) => { setFreePrompt(e.target.value); setSelectedVibe(null); }}
-                placeholder="e.g. Jazz bar hopping with craft cocktails, ending at a rooftop with a view..."
-                rows={2}
-                className="w-full bg-transparent font-body text-sm text-ink placeholder:text-ink/25 resize-none focus:outline-none leading-relaxed"
-              />
-            </div>
-            <button
-              onClick={handleCreate}
-              disabled={!canSubmit}
-              className="zine-btn"
-            >
-              {canSubmit ? "Build my route →" : "Type something or pick a vibe ↓"}
-            </button>
+          {/* Prompt — submit on Enter, no button */}
+          <div className="sketch-border-light bg-paper px-4 py-3">
+            <textarea
+              value={freePrompt}
+              onChange={(e) => { setFreePrompt(e.target.value); setSelectedVibe(null); }}
+              onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && freePrompt.trim()) { e.preventDefault(); handleCreate(); } }}
+              placeholder="Describe your perfect evening… (press Enter to go)"
+              rows={2}
+              className="w-full bg-transparent font-body text-sm text-ink placeholder:text-ink/25 resize-none focus:outline-none leading-relaxed"
+            />
           </div>
 
           <div className="ink-divider" />
 
-          {/* Vibe — horizontal swipeable */}
-          <div className="space-y-4">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-6">
-              Or pick a vibe
-            </h2>
-            <div 
-              className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide"
-              style={{ WebkitOverflowScrolling: "touch" }}
-            >
-              {vibes.map((vibe, i) => (
-                <button
-                  key={vibe.id}
-                  onClick={() => {
-                    setSelectedVibe(vibe.id);
-                    setFreePrompt("");
-                  }}
-                  className={`flex-shrink-0 flex flex-col items-center gap-2 w-24 snap-start transition-all duration-200 ${
-                    selectedVibe === vibe.id && !freePrompt
-                      ? "scale-110"
-                      : "opacity-80 hover:opacity-100"
-                  } ${tiltClasses[i % tiltClasses.length]}`}
-                >
-                  <div className={`w-20 h-20 rounded-[28%_22%_30%_20%] overflow-hidden flex items-center justify-center transition-all duration-200 ${
-                    selectedVibe === vibe.id && !freePrompt
-                      ? "ring-[3px] ring-primary shadow-lg bg-primary/10"
-                      : "bg-muted/40"
-                  }`}>
-                    <img src={vibe.icon} alt={vibe.label} className="w-16 h-16 object-contain" loading="lazy" width={512} height={512} />
-                  </div>
-                  <span className={`text-xs font-display font-bold text-center leading-tight ${
-                    selectedVibe === vibe.id && !freePrompt ? "text-primary" : "text-ink/60"
-                  }`}>
-                    {vibe.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-            {selectedVibe && !freePrompt && (
-              <button
-                onClick={handleCreate}
-                className="zine-btn"
+          {/* Vibes + Fine-tune merged */}
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <h2 className="text-3xl font-display font-bold text-ink tilt-6">
+                Pick a vibe
+              </h2>
+              <div 
+                className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide"
+                style={{ WebkitOverflowScrolling: "touch" }}
               >
-                Build my route →
-              </button>
-            )}
-          </div>
+                {vibes.map((vibe, i) => (
+                  <button
+                    key={vibe.id}
+                    onClick={() => {
+                      setSelectedVibe(vibe.id);
+                      setFreePrompt("");
+                    }}
+                    className={`flex-shrink-0 flex flex-col items-center gap-2 w-24 snap-start transition-all duration-200 ${
+                      selectedVibe === vibe.id && !freePrompt
+                        ? "scale-110"
+                        : "opacity-80 hover:opacity-100"
+                    } ${tiltClasses[i % tiltClasses.length]}`}
+                  >
+                    <div className={`w-20 h-20 rounded-[28%_22%_30%_20%] overflow-hidden flex items-center justify-center transition-all duration-200 ${
+                      selectedVibe === vibe.id && !freePrompt
+                        ? "ring-[3px] ring-primary shadow-lg bg-primary/10"
+                        : "bg-muted/40"
+                    }`}>
+                      <img src={vibe.icon} alt={vibe.label} className="w-16 h-16 object-contain" loading="lazy" width={512} height={512} />
+                    </div>
+                    <span className={`text-xs font-display font-bold text-center leading-tight ${
+                      selectedVibe === vibe.id && !freePrompt ? "text-primary" : "text-ink/60"
+                    }`}>
+                      {vibe.label}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
 
-          <div className="ink-divider" />
-
-          {/* Optional extras — collapsed feel */}
-          <details className="group">
-            <summary className="text-2xl font-display font-bold text-ink cursor-pointer tilt-2 list-none flex items-center gap-2">
-              <span>✦ Fine-tune (optional)</span>
-              <span className="text-ink/30 text-lg group-open:rotate-90 transition-transform">›</span>
-            </summary>
-            <div className="mt-6 space-y-8">
+            {/* Fine-tune inline */}
+            <div className="space-y-6">
+              <h3 className="text-xl font-display font-bold text-ink/50 tilt-2">✦ Fine-tune</h3>
+              
               {/* Group size */}
-              <div className="space-y-3">
-                <h3 className="text-xl font-display font-bold text-ink/70">How many?</h3>
+              <div className="space-y-2">
+                <p className="text-sm font-display font-bold text-ink/70">How many?</p>
                 <div className="flex gap-3">
                   {groupSizes.map((size) => (
                     <button
@@ -367,8 +347,8 @@ const CityVibes = () => {
               </div>
 
               {/* Budget */}
-              <div className="space-y-3">
-                <h3 className="text-xl font-display font-bold text-ink/70">Budget?</h3>
+              <div className="space-y-2">
+                <p className="text-sm font-display font-bold text-ink/70">Budget?</p>
                 <div className="flex gap-2">
                   {budgets.map((b) => (
                     <button
@@ -383,8 +363,8 @@ const CityVibes = () => {
               </div>
 
               {/* Area */}
-              <div className="space-y-3">
-                <h3 className="text-xl font-display font-bold text-ink/70">Where to start?</h3>
+              <div className="space-y-2">
+                <p className="text-sm font-display font-bold text-ink/70">Where to start?</p>
                 {cityAreas ? (
                   <div className="flex flex-wrap gap-2">
                     {cityAreas.map((a, i) => (
@@ -398,15 +378,20 @@ const CityVibes = () => {
                     ))}
                   </div>
                 ) : (
-                  <div className="zine-card tilt-3">
-                    <div className="tape-strip" />
-                    <p className="font-display text-xl font-bold text-ink mt-1">{cityName}</p>
-                    <p className="font-body text-xs text-ink/40 mt-1">We'll find the best spots ✦</p>
-                  </div>
+                  <p className="font-body text-xs text-ink/40">We'll find the best spots in {cityName} ✦</p>
                 )}
               </div>
             </div>
-          </details>
+
+            {/* Single Build button */}
+            <button
+              onClick={handleCreate}
+              disabled={!canSubmit}
+              className="zine-btn"
+            >
+              {canSubmit ? "Build my route →" : "Type or pick a vibe first"}
+            </button>
+          </div>
         </section>
       )}
 
