@@ -140,17 +140,29 @@ const RouteView = () => {
       {/* CTAs */}
       <div className="w-full max-w-md mx-auto px-6 py-6 space-y-3">
         <button
-          onClick={() => navigate(`/tonight?route=${encodeURIComponent(JSON.stringify(route))}`)}
+          onClick={() => {
+            const params = new URLSearchParams({
+              route: JSON.stringify(route),
+              city: city,
+            });
+            navigate(`/booking?${params.toString()}`);
+          }}
           className="zine-btn"
         >
-          Start my night →
+          Book this night →
+        </button>
+        <button
+          onClick={() => navigate(`/tonight?route=${encodeURIComponent(JSON.stringify(route))}`)}
+          className="w-full py-3 font-display text-base font-bold text-ink/40 hover:text-ink/60 transition-colors"
+        >
+          Skip booking, go now
         </button>
         <button
           onClick={() => {
             const stopsParam = encodeURIComponent(JSON.stringify(route.stops));
             navigate(`/poster?routeName=${encodeURIComponent(route.routeName)}&city=${encodeURIComponent(where)}&stops=${stopsParam}`);
           }}
-          className="w-full py-3 font-body text-base font-semibold text-secondary hover:text-secondary/80 transition-colors"
+          className="w-full py-3 font-body text-sm text-secondary hover:text-secondary/80 transition-colors"
         >
           Get your poster ✦
         </button>

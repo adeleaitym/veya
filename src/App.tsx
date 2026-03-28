@@ -29,6 +29,8 @@ const App = () => (
           <Route path="/preferences" element={<Preferences />} />
           <Route path="/route" element={<RouteView />} />
           <Route path="/stop" element={<StopDetail />} />
+          <Route path="/booking" element={<Booking />} />
+          <Route path="/confirmation" element={<Confirmation />} />
           <Route path="/tonight" element={<Tonight />} />
           <Route path="/feedback" element={<Feedback />} />
           <Route path="/poster" element={<RoutePoster />} />
