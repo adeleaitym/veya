@@ -69,6 +69,7 @@ Please generate a visually stunning poster illustration in your signature style.
             ],
             context: {
               timezone: "Europe/Stockholm",
+              username: "veya-app",
               profilePictureUrl: null,
               fullName: "Veya App",
               email: null,
