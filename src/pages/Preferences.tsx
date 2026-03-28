@@ -3,7 +3,18 @@ import { useState, useEffect } from "react";
 
 const budgetOptions = ["$", "$$", "$$$", "$$$$"];
 const timeOptions = ["Early (17–19)", "Classic (19–22)", "Late (22+)"];
-const foodOptions = ["Anything", "Vegetarian", "Vegan", "No preference"];
+const foodOptions = [
+  "Anything",
+  "Vegetarian",
+  "Vegan",
+  "Gluten-free",
+  "Halal",
+  "Kosher",
+  "Pescatarian",
+  "Dairy-free",
+  "Keto / Low-carb",
+  "No preference",
+];
 
 // City-specific neighborhoods
 const cityNeighborhoods: Record<string, string[]> = {
