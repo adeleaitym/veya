@@ -94,7 +94,7 @@ const CityVibes = () => {
   const [loadingPoster, setLoadingPoster] = useState(false);
 
   const cityAreas = areas[cityId || ""] || null;
-  const canSubmit = (selectedVibe || freePrompt.trim()) && groupSize && budget;
+  const canSubmit = freePrompt.trim() || selectedVibe;
 
   const handleCreate = async () => {
     if (!canSubmit) return;
@@ -102,24 +102,59 @@ const CityVibes = () => {
 
     const vibeName = vibes.find((v) => v.id === selectedVibe)?.label || selectedVibe;
     const budgetName = budgetLabels[budget || ""] || budget;
-    const vibeDescription = freePrompt.trim()
-      ? freePrompt.trim()
-      : `a ${vibeName} vibe`;
-    const prompt = `I'm in ${cityName}${area && area !== "Surprise me" ? `, specifically ${area}` : ""}. I want ${vibeDescription} evening for ${groupSize} ${groupSize === "1" ? "person" : "people"} on a ${budgetName?.toLowerCase()} budget. Plan a perfect evening route — this can include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment, or anything that makes a great night out!`;
+    
+    let prompt = `I'm in ${cityName}`;
+    if (area && area !== "Surprise me") prompt += `, specifically ${area}`;
+    prompt += ". ";
+    
+    if (freePrompt.trim()) {
+      prompt += freePrompt.trim();
+    } else {
+      prompt += `I want a ${vibeName} vibe evening`;
+    }
+    
+    if (groupSize) prompt += ` for ${groupSize} ${groupSize === "1" ? "person" : "people"}`;
+    if (budgetName) prompt += ` on a ${budgetName.toLowerCase()} budget`;
+    prompt += ". Plan a perfect evening route — this can include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment, or anything that makes a great night out!";
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-route", {
+      // Step 1: Start the conversation (returns immediately)
+      const { data: startData, error: startError } = await supabase.functions.invoke("generate-route", {
         body: { message: prompt, city: cityName },
       });
-      if (error) throw error;
+      if (startError) throw startError;
 
-      const message = data?.message || "";
-      const jsonMatch = message.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, message];
-      const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || message);
-      setRoute(parsed);
-      setPhase("route");
-      generateStopImages(parsed.stops);
-      generatePoster(parsed);
+      const conversationId = startData?.conversationId;
+      if (!conversationId) throw new Error("No conversation ID returned");
+
+      // Step 2: Poll for completion
+      let attempts = 0;
+      const maxAttempts = 60;
+      while (attempts < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 2000));
+        attempts++;
+
+        const { data: pollData, error: pollError } = await supabase.functions.invoke("poll-route", {
+          body: { conversationId },
+        });
+        if (pollError) throw pollError;
+
+        if (pollData?.status === "completed" && pollData?.message) {
+          const message = pollData.message;
+          const jsonMatch = message.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, message];
+          const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || message);
+          setRoute(parsed);
+          setPhase("route");
+          generateStopImages(parsed.stops);
+          generatePoster(parsed);
+          return;
+        } else if (pollData?.status === "failed") {
+          throw new Error("Route generation failed");
+        }
+        // else still processing, continue polling
+      }
+
+      throw new Error("Route generation timed out");
     } catch (err) {
       console.error("Route generation error:", err);
       toast.error("Couldn't generate your route. Try again!");
@@ -217,23 +252,24 @@ const CityVibes = () => {
             </p>
           </div>
 
-          {/* Free prompt search */}
+          {/* Prompt + Quick Submit */}
           <div className="space-y-3">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-2">
-              Describe your perfect evening
-            </h2>
             <div className="sketch-border-light bg-paper px-4 py-3">
               <textarea
                 value={freePrompt}
-                onChange={(e) => setFreePrompt(e.target.value)}
+                onChange={(e) => { setFreePrompt(e.target.value); setSelectedVibe(null); }}
                 placeholder="e.g. Jazz bar hopping with craft cocktails, ending at a rooftop with a view..."
                 rows={2}
                 className="w-full bg-transparent font-body text-sm text-ink placeholder:text-ink/25 resize-none focus:outline-none leading-relaxed"
               />
             </div>
-            <p className="text-xs font-display text-ink/30 tilt-5">
-              or pick a vibe below ↓
-            </p>
+            <button
+              onClick={handleCreate}
+              disabled={!canSubmit}
+              className="zine-btn"
+            >
+              {canSubmit ? "Build my route →" : "Type something or pick a vibe ↓"}
+            </button>
           </div>
 
           <div className="ink-divider" />
@@ -241,7 +277,7 @@ const CityVibes = () => {
           {/* Vibe — horizontal swipeable */}
           <div className="space-y-4">
             <h2 className="text-3xl font-display font-bold text-ink tilt-6">
-              Pick your vibe
+              Or pick a vibe
             </h2>
             <div 
               className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide"
@@ -275,95 +311,91 @@ const CityVibes = () => {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="ink-divider" />
-
-          {/* Group size — hand-drawn circles */}
-          <div className="space-y-4">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-2">
-              How many?
-            </h2>
-            <div className="flex gap-3">
-              {groupSizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setGroupSize(size)}
-                  className={`w-14 h-14 flex items-center justify-center font-display text-xl font-bold transition-all ${
-                    groupSize === size
-                      ? "bg-ink text-paper border-ink"
-                      : "bg-transparent text-ink/60 border-ink/25 hover:border-ink/50"
-                  }`}
-                  style={{
-                    borderWidth: "2px",
-                    borderStyle: "solid",
-                    borderRadius: groupSize === size ? "50% 44% 50% 42%" : "42% 50% 44% 50%",
-                  }}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="ink-divider" />
-
-          {/* Budget — sketchy tab bar */}
-          <div className="space-y-4">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-5">
-              Budget?
-            </h2>
-            <div className="flex gap-2">
-              {budgets.map((b) => (
-                <button
-                  key={b}
-                  onClick={() => setBudget(b)}
-                  className={`zine-chip flex-1 text-center ${budget === b ? "selected" : ""}`}
-                >
-                  {b}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="ink-divider" />
-
-          {/* Area */}
-          <div className="space-y-4">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-1">
-              Where to start?
-            </h2>
-            {cityAreas ? (
-              <div className="flex flex-wrap gap-2">
-                {cityAreas.map((a, i) => (
-                  <button
-                    key={a}
-                    onClick={() => setArea(a)}
-                    className={`zine-chip ${area === a ? "selected" : ""} ${tiltClasses[(i + 3) % tiltClasses.length]}`}
-                  >
-                    {a}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="zine-card tilt-3">
-                <div className="tape-strip" />
-                <p className="font-display text-2xl font-bold text-ink mt-1">{cityName}</p>
-                <p className="font-body text-xs text-ink/40 mt-1">We'll find the best spots ✦</p>
-              </div>
+            {selectedVibe && !freePrompt && (
+              <button
+                onClick={handleCreate}
+                className="zine-btn"
+              >
+                Build my route →
+              </button>
             )}
           </div>
 
-          {/* CTA */}
-          <div className="pt-2">
-            <button
-              onClick={handleCreate}
-              disabled={!canSubmit}
-              className="zine-btn"
-            >
-              {canSubmit ? "Build my route →" : "Pick vibe, size & budget first"}
-            </button>
-          </div>
+          <div className="ink-divider" />
+
+          {/* Optional extras — collapsed feel */}
+          <details className="group">
+            <summary className="text-2xl font-display font-bold text-ink cursor-pointer tilt-2 list-none flex items-center gap-2">
+              <span>✦ Fine-tune (optional)</span>
+              <span className="text-ink/30 text-lg group-open:rotate-90 transition-transform">›</span>
+            </summary>
+            <div className="mt-6 space-y-8">
+              {/* Group size */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-display font-bold text-ink/70">How many?</h3>
+                <div className="flex gap-3">
+                  {groupSizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setGroupSize(size)}
+                      className={`w-12 h-12 flex items-center justify-center font-display text-lg font-bold transition-all ${
+                        groupSize === size
+                          ? "bg-ink text-paper border-ink"
+                          : "bg-transparent text-ink/60 border-ink/25 hover:border-ink/50"
+                      }`}
+                      style={{
+                        borderWidth: "2px",
+                        borderStyle: "solid",
+                        borderRadius: groupSize === size ? "50% 44% 50% 42%" : "42% 50% 44% 50%",
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Budget */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-display font-bold text-ink/70">Budget?</h3>
+                <div className="flex gap-2">
+                  {budgets.map((b) => (
+                    <button
+                      key={b}
+                      onClick={() => setBudget(b)}
+                      className={`zine-chip flex-1 text-center ${budget === b ? "selected" : ""}`}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Area */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-display font-bold text-ink/70">Where to start?</h3>
+                {cityAreas ? (
+                  <div className="flex flex-wrap gap-2">
+                    {cityAreas.map((a, i) => (
+                      <button
+                        key={a}
+                        onClick={() => setArea(a)}
+                        className={`zine-chip ${area === a ? "selected" : ""} ${tiltClasses[(i + 3) % tiltClasses.length]}`}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="zine-card tilt-3">
+                    <div className="tape-strip" />
+                    <p className="font-display text-xl font-bold text-ink mt-1">{cityName}</p>
+                    <p className="font-body text-xs text-ink/40 mt-1">We'll find the best spots ✦</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </details>
         </section>
       )}
 
