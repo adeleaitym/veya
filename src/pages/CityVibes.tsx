@@ -37,7 +37,7 @@ interface GeneratedRoute {
 const CityVibes = () => {
   const { cityId } = useParams<{ cityId: string }>();
   const navigate = useNavigate();
-  const cityName = cityNames[cityId || ""] || cityId || "";
+  const cityName = cityNameMap[cityId || ""] || cityId || "";
 
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
   const [groupSize, setGroupSize] = useState<string | null>(null);
