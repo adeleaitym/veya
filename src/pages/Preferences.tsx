@@ -1,9 +1,18 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const budgetOptions = ["$", "$$", "$$$", "$$$$"];
 const timeOptions = ["Early (17–19)", "Classic (19–22)", "Late (22+)"];
 const foodOptions = ["Anything", "Vegetarian", "Vegan", "No preference"];
+
+const nearbyAreas = [
+  "Nearby",
+  "Old Town",
+  "Downtown",
+  "Waterfront",
+  "Arts District",
+  "University Area",
+];
 
 const Preferences = () => {
   const navigate = useNavigate();
@@ -14,6 +23,54 @@ const Preferences = () => {
   const [budget, setBudget] = useState("$$");
   const [time, setTime] = useState("Classic (19–22)");
   const [food, setFood] = useState("Anything");
+  const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "done" | "denied">("idle");
+  const [geoLabel, setGeoLabel] = useState("");
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setGeoStatus("denied");
+      return;
+    }
+    setGeoStatus("loading");
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const resp = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&zoom=14`
+          );
+          const data = await resp.json();
+          const area =
+            data.address?.suburb ||
+            data.address?.neighbourhood ||
+            data.address?.city_district ||
+            data.address?.city ||
+            "Your area";
+          setGeoLabel(area);
+          setWhere(area);
+          setGeoStatus("done");
+        } catch {
+          setGeoStatus("done");
+          setGeoLabel("Near you");
+          setWhere("Near you");
+        }
+      },
+      () => {
+        setGeoStatus("denied");
+      },
+      { timeout: 8000 }
+    );
+  }, []);
+
+  const handleChipSelect = (area: string) => {
+    if (area === "Nearby" && geoLabel) {
+      setWhere(geoLabel);
+    } else if (area === "Nearby") {
+      setWhere("Surprise me");
+    } else {
+      setWhere(area);
+    }
+  };
 
   const handleCreate = () => {
     const params = new URLSearchParams({
@@ -51,12 +108,42 @@ const Preferences = () => {
           <label className="text-lg font-display font-bold text-ink">
             Where? ✦
           </label>
+
+          {/* Location status */}
+          {geoStatus === "loading" && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/10">
+              <div className="w-3 h-3 rounded-full border-2 border-secondary border-t-transparent animate-spin" />
+              <span className="text-xs font-body text-ink/50">Finding your location...</span>
+            </div>
+          )}
+
+          {geoStatus === "done" && geoLabel && (
+            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/10">
+              <span className="text-sm">📍</span>
+              <span className="text-xs font-body text-secondary font-semibold">{geoLabel}</span>
+            </div>
+          )}
+
+          {/* Area chips */}
+          <div className="flex flex-wrap gap-2">
+            {nearbyAreas.map((area) => (
+              <button
+                key={area}
+                onClick={() => handleChipSelect(area)}
+                className={`zine-chip ${where === area || (area === "Nearby" && where === geoLabel) ? "selected" : ""}`}
+              >
+                {area === "Nearby" ? `📍 ${geoLabel || "Nearby"}` : area}
+              </button>
+            ))}
+          </div>
+
+          {/* Free text fallback */}
           <input
             type="text"
             value={where}
             onChange={(e) => setWhere(e.target.value)}
-            placeholder="Neighborhood, area, or surprise me..."
-            className="w-full px-4 py-3 rounded-[16px_12px_18px_10px] border-2 border-ink/12 bg-paper font-body text-sm text-ink placeholder:text-ink/30 focus:outline-none focus:border-ink/30 transition-colors"
+            placeholder="Or type a neighborhood..."
+            className="w-full px-4 py-3 rounded-2xl border-2 border-ink/12 bg-paper font-body text-sm text-ink placeholder:text-ink/30 focus:outline-none focus:border-secondary/40 transition-colors"
           />
         </div>
 
