@@ -21,48 +21,97 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const DUST_API_KEY = Deno.env.get("DUST_API_KEY");
+    if (!DUST_API_KEY) throw new Error("DUST_API_KEY is not configured");
 
-    const systemPrompt = `You are Veya, a curated food journey AI. The user is exploring ${city || "a city"}. Based on their vibe preferences, generate a curated food journey route with 4-6 specific stops. For each stop provide: a name (use real-sounding restaurant/bar names), a type (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack), a short vivid description (1 sentence max), and an estimated duration. Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure: {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string","description":"string","duration":"string"}]}`;
+    const DUST_WORKSPACE_ID = Deno.env.get("DUST_WORKSPACE_ID");
+    if (!DUST_WORKSPACE_ID) throw new Error("DUST_WORKSPACE_ID is not configured");
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-      }),
-    });
+    const systemContext = `You are Veya, an evening route planner AI. The user is exploring ${city || "a city"}. Based on their preferences, generate a curated evening route with 4-6 specific stops. Include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment — anything that makes a great night out! For each stop provide: a name (real-sounding venue names), a type (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack), a short vivid description (1 sentence max), and an estimated duration. Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure: {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string","description":"string","duration":"string"}]}`;
 
-    if (!aiResp.ok) {
-      const errText = await aiResp.text();
-      console.error("AI error:", aiResp.status, errText);
+    const fullMessage = `${systemContext}\n\nUser request: ${message}`;
 
-      if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limited. Try again shortly." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+    // Create a conversation with Dust
+    const dustResp = await fetch(
+      `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${DUST_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: {
+            content: fullMessage,
+            mentions: [{ configurationId: "MapAnimator" }],
+            context: {
+              timezone: "UTC",
+              profilePictureUrl: null,
+              fullName: "Veya User",
+              email: null,
+              username: "veya-user",
+              origin: "api",
+            },
+          },
+          visibility: "unlisted",
+          title: `Route: ${city}`,
+        }),
       }
-      if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add funds." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
+    );
 
-      throw new Error(`AI error [${aiResp.status}]`);
+    if (!dustResp.ok) {
+      const errText = await dustResp.text();
+      console.error("Dust API error:", dustResp.status, errText);
+      throw new Error(`Dust API error [${dustResp.status}]: ${errText}`);
     }
 
-    const aiData = await aiResp.json();
-    const assistantMessage = aiData.choices?.[0]?.message?.content || "";
+    const dustData = await dustResp.json();
+    const conversationId = dustData.conversation?.sId;
+
+    if (!conversationId) {
+      console.error("No conversation ID returned:", JSON.stringify(dustData));
+      throw new Error("Failed to create Dust conversation");
+    }
+
+    // Poll for the agent's response
+    let assistantMessage = "";
+    const maxAttempts = 60; // up to 2 minutes
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      await new Promise((r) => setTimeout(r, 2000));
+
+      const pollResp = await fetch(
+        `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations/${conversationId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${DUST_API_KEY}`,
+          },
+        }
+      );
+
+      if (!pollResp.ok) {
+        const pollErr = await pollResp.text();
+        console.error("Poll error:", pollResp.status, pollErr);
+        continue;
+      }
+
+      const pollData = await pollResp.json();
+      const messages = pollData.conversation?.content || [];
+
+      // Find the last agent message
+      for (const messageGroup of messages) {
+        for (const msg of messageGroup) {
+          if (msg.type === "agent_message" && msg.status === "succeeded") {
+            assistantMessage = msg.content || "";
+          }
+        }
+      }
+
+      if (assistantMessage) break;
+    }
+
+    if (!assistantMessage) {
+      throw new Error("Dust agent did not respond in time");
+    }
 
     return new Response(
       JSON.stringify({ message: assistantMessage }),
