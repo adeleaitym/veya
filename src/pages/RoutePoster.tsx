@@ -1,5 +1,4 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useRef } from "react";
 
 const accentColors = ["#C75B3A", "#8B4F6E", "#2A7B6F", "#D4943A", "#5B7FA5", "#6B8E5A"];
 
@@ -12,7 +11,6 @@ const stopEmoji: Record<string, string> = {
 const RoutePoster = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const posterRef = useRef<HTMLDivElement>(null);
 
   const routeName = searchParams.get("routeName") || "My Night";
   const city = searchParams.get("city") || "";
@@ -25,14 +23,12 @@ const RoutePoster = () => {
   }
 
   const handleShare = async () => {
-    // Try native share with text, fallback to clipboard
-    const text = `${routeName} — ${city}\n\n${stops.map((s: any, i: number) => `${i + 1}. ${s.name}`).join("\n")}\n\nPlanned with Veya ✦`;
+    const text = `✦ ${routeName} — ${city}\n\n${stops.map((s: any, i: number) => `${i + 1}. ${s.name} ${stopEmoji[s.type] || "📍"}`).join("\n")}\n\nPlanned with Veya ✦\nhttps://veya-veya.lovable.app`;
     try {
       if (navigator.share) {
         await navigator.share({ title: routeName, text });
       } else {
         await navigator.clipboard.writeText(text);
-        alert("Copied to clipboard!");
       }
     } catch {
       await navigator.clipboard.writeText(text);
@@ -48,146 +44,174 @@ const RoutePoster = () => {
         >
           ← Back to route
         </button>
-        <h1 className="text-3xl font-display font-bold text-ink leading-tight">
-          Your night, illustrated ✦
-        </h1>
-        <p className="text-ink/40 font-body text-sm mt-1">
-          Save it. Share it. Live it.
-        </p>
       </header>
 
-      {/* Poster Card */}
-      <section className="w-full max-w-md mx-auto px-5 mt-6">
+      {/* The Poster */}
+      <section className="w-full max-w-md mx-auto px-4 mt-2">
         <div
-          ref={posterRef}
-          className="relative overflow-hidden rounded-2xl shadow-2xl"
+          className="relative overflow-hidden rounded-3xl shadow-2xl"
           style={{
-            background: "linear-gradient(165deg, #FDF6EE 0%, #FFF8F2 40%, #F5EDE3 100%)",
-            border: "1px solid rgba(200, 185, 165, 0.4)",
+            background: "linear-gradient(170deg, #1a1a2e 0%, #16213e 35%, #0f3460 70%, #1a1a2e 100%)",
+            minHeight: 520,
           }}
         >
-          {/* Inner border */}
+          {/* Star field */}
+          {[...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute rounded-full"
+              style={{
+                width: Math.random() * 2 + 1,
+                height: Math.random() * 2 + 1,
+                background: "white",
+                opacity: Math.random() * 0.4 + 0.1,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+            />
+          ))}
+
+          {/* Glow orb */}
           <div
-            className="absolute inset-3 rounded-xl pointer-events-none"
-            style={{ border: "1px solid rgba(180, 160, 135, 0.2)" }}
+            className="absolute rounded-full"
+            style={{
+              width: 200,
+              height: 200,
+              background: "radial-gradient(circle, rgba(199,91,58,0.15) 0%, transparent 70%)",
+              top: -40,
+              right: -40,
+            }}
           />
 
-          {/* Decorative corner marks */}
-          <div className="absolute top-5 left-5 w-4 h-4 border-t border-l" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
-          <div className="absolute top-5 right-5 w-4 h-4 border-t border-r" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
-          <div className="absolute bottom-5 left-5 w-4 h-4 border-b border-l" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
-          <div className="absolute bottom-5 right-5 w-4 h-4 border-b border-r" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
-
-          {/* Header */}
-          <div className="px-8 pt-10 pb-6 text-center relative">
-            {/* Subtle decorative dots */}
-            <div className="absolute top-6 left-8 flex gap-1.5 opacity-20">
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColors[0] }} />
-              <div className="w-1 h-1 rounded-full mt-0.5" style={{ background: accentColors[2] }} />
-            </div>
-            <div className="absolute top-6 right-8 flex gap-1.5 opacity-20">
-              <div className="w-1 h-1 rounded-full mt-0.5" style={{ background: accentColors[3] }} />
-              <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColors[1] }} />
-            </div>
-
+          {/* Header area */}
+          <div className="relative z-10 px-7 pt-8 pb-4 text-center">
             <p
-              className="font-body text-[10px] tracking-[0.3em] uppercase mb-4"
-              style={{ color: "#b8a08a" }}
+              className="font-body text-[9px] tracking-[0.35em] uppercase"
+              style={{ color: "rgba(255,255,255,0.35)" }}
             >
-              Your Evening
+              Tonight's Route
             </p>
-            <div className="w-8 h-[1px] mx-auto mb-5" style={{ background: "#d8ccbe" }} />
             <h2
-              className="font-display text-[28px] leading-tight font-bold"
-              style={{ color: "#2a2a2a" }}
+              className="font-display text-[32px] leading-[1.1] font-bold mt-2"
+              style={{ color: "#fff" }}
             >
               {routeName}
             </h2>
-            {city && (
-              <p
-                className="font-body text-xs mt-2"
-                style={{ color: "#aaa" }}
-              >
-                {city} · {stops.length} stops
-              </p>
-            )}
+            <p
+              className="font-body text-xs mt-2"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              {city}
+            </p>
           </div>
 
-          {/* Divider */}
-          <div className="px-12">
-            <div className="h-[1px]" style={{ background: "linear-gradient(90deg, transparent, #e0d6ca, transparent)" }} />
-          </div>
+          {/* Route Map Visual */}
+          <div className="relative z-10 px-6 pb-6">
+            {/* The winding path SVG */}
+            <svg
+              className="absolute left-0 top-0 w-full h-full pointer-events-none"
+              viewBox="0 0 340 500"
+              preserveAspectRatio="none"
+              style={{ opacity: 0.15 }}
+            >
+              <path
+                d="M170 0 Q 80 60, 170 120 Q 260 180, 170 240 Q 80 300, 170 360 Q 260 420, 170 480"
+                fill="none"
+                stroke="white"
+                strokeWidth="1"
+                strokeDasharray="4,6"
+              />
+            </svg>
 
-          {/* Stops */}
-          <div className="px-6 py-6 space-y-1">
-            {stops.map((stop: any, i: number) => {
-              const color = accentColors[i % accentColors.length];
-              const emoji = stopEmoji[stop.type] || "📍";
-              return (
-                <div key={i} className="relative">
-                  {/* Connector line */}
-                  {i < stops.length - 1 && (
-                    <div
-                      className="absolute left-[22px] top-[44px] bottom-[-4px] w-[1.5px]"
-                      style={{
-                        background: `repeating-linear-gradient(to bottom, ${color}33 0px, ${color}33 3px, transparent 3px, transparent 8px)`,
-                      }}
-                    />
-                  )}
-                  <div className="flex gap-3 p-3 rounded-xl relative" style={{ background: "rgba(255,255,255,0.5)" }}>
-                    {/* Number badge */}
-                    <div className="flex-shrink-0 mt-0.5">
+            <div className="space-y-0">
+              {stops.map((stop: any, i: number) => {
+                const color = accentColors[i % accentColors.length];
+                const emoji = stopEmoji[stop.type] || "📍";
+                const isEven = i % 2 === 0;
+
+                return (
+                  <div key={i} className="relative">
+                    {/* Connector */}
+                    {i < stops.length - 1 && (
                       <div
-                        className="w-[30px] h-[30px] rounded-full flex items-center justify-center font-display text-sm font-bold"
-                        style={{ background: `${color}15`, color }}
-                      >
-                        {i + 1}
+                        className="absolute w-[1px] z-0"
+                        style={{
+                          left: isEven ? "32px" : "auto",
+                          right: isEven ? "auto" : "32px",
+                          top: "52px",
+                          height: "calc(100% - 20px)",
+                          background: `linear-gradient(to bottom, ${color}60, ${accentColors[(i + 1) % accentColors.length]}60)`,
+                        }}
+                      />
+                    )}
+
+                    <div
+                      className="relative z-10 flex gap-3 items-start py-3"
+                      style={{
+                        flexDirection: isEven ? "row" : "row-reverse",
+                        textAlign: isEven ? "left" : "right",
+                      }}
+                    >
+                      {/* Pin */}
+                      <div className="flex-shrink-0">
+                        <div
+                          className="w-[52px] h-[52px] rounded-2xl flex flex-col items-center justify-center relative"
+                          style={{
+                            background: `linear-gradient(135deg, ${color}25, ${color}10)`,
+                            border: `1px solid ${color}40`,
+                            boxShadow: `0 0 20px ${color}15`,
+                          }}
+                        >
+                          <span className="text-lg leading-none">{emoji}</span>
+                          <span
+                            className="font-body text-[8px] font-bold mt-0.5"
+                            style={{ color: `${color}` }}
+                          >
+                            {stop.duration?.replace(" minutes", "min").replace(" hour", "hr")}
+                          </span>
+                        </div>
                       </div>
-                    </div>
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-2">
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0 pt-1">
+                        <p
+                          className="font-body text-[9px] font-semibold uppercase tracking-[0.15em]"
+                          style={{ color }}
+                        >
+                          Stop {i + 1}
+                        </p>
                         <h3
-                          className="font-display text-[15px] font-bold leading-snug"
-                          style={{ color: "#2a2a2a" }}
+                          className="font-display text-[18px] font-bold leading-snug mt-0.5"
+                          style={{ color: "#fff" }}
                         >
                           {stop.name}
                         </h3>
-                        <span className="flex-shrink-0 text-sm opacity-30">{emoji}</span>
+                        <p
+                          className="font-body text-[10px] leading-relaxed mt-1 line-clamp-2"
+                          style={{ color: "rgba(255,255,255,0.35)" }}
+                        >
+                          {stop.description}
+                        </p>
                       </div>
-                      <p
-                        className="font-body text-[10px] leading-relaxed mt-1 line-clamp-2"
-                        style={{ color: "#999" }}
-                      >
-                        {stop.description}
-                      </p>
-                      <span
-                        className="inline-block mt-1.5 px-2 py-0.5 rounded-full font-body text-[9px] font-semibold"
-                        style={{ background: `${color}10`, color }}
-                      >
-                        {stop.duration}
-                      </span>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="px-12 pb-2">
-            <div className="h-[1px]" style={{ background: "linear-gradient(90deg, transparent, #e0d6ca, transparent)" }} />
-          </div>
-          <div className="text-center pb-8 pt-4">
-            <p
-              className="font-display text-xl font-bold"
-              style={{ color: "#2A5A4A" }}
-            >
+          <div className="relative z-10 text-center pb-7 pt-2">
+            <div
+              className="w-12 h-[1px] mx-auto mb-4"
+              style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)" }}
+            />
+            <p className="font-display text-lg font-bold" style={{ color: "#fff" }}>
               Veya
             </p>
             <p
-              className="font-body text-[8px] tracking-[0.25em] uppercase mt-1"
-              style={{ color: "#c4b09a" }}
+              className="font-body text-[8px] tracking-[0.3em] uppercase mt-0.5"
+              style={{ color: "rgba(255,255,255,0.25)" }}
             >
               Curated Evenings
             </p>
