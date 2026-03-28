@@ -150,6 +150,24 @@ const CityVibes = () => {
     experience: "✨", snack: "🥐", cocktail: "🍸", coffee: "☕",
   };
 
+  const getStopPosition = (index: number) => {
+    const y = 80 + index * 160;
+    const isEven = index % 2 === 0;
+    return { x: isEven ? 80 : 310, y };
+  };
+
+  const generatePathD = (stops: RouteStop[]) => {
+    if (stops.length === 0) return "";
+    const points = stops.map((_, i) => getStopPosition(i));
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      d += ` C ${prev.x} ${prev.y + 80}, ${curr.x} ${curr.y - 80}, ${curr.x} ${curr.y}`;
+    }
+    return d;
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
