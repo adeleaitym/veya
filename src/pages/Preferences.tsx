@@ -18,7 +18,7 @@ const cityNeighborhoods: Record<string, string[]> = {
   Paris: ["Le Marais", "Montmartre", "Saint-Germain", "Bastille", "Belleville"],
   Barcelona: ["El Born", "Gràcia", "Raval", "Eixample", "Barceloneta"],
   Amsterdam: ["De Pijp", "Jordaan", "De 9 Straatjes", "Oud-West", "Oost"],
-  New York: ["East Village", "Williamsburg", "West Village", "Lower East Side", "SoHo"],
+  "New York": ["East Village", "Williamsburg", "West Village", "Lower East Side", "SoHo"],
 };
 
 const defaultNeighborhoods = ["Old Town", "Downtown", "Waterfront", "Arts District", "University Area"];
