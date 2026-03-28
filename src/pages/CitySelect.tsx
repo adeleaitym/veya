@@ -1,12 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import cityKL from "@/assets/city-kuala-lumpur.jpg";
-import cityBangkok from "@/assets/city-bangkok.jpg";
-import cityLisbon from "@/assets/city-lisbon.jpg";
+import cityStockholm from "@/assets/city-stockholm.jpg";
+import cityParis from "@/assets/city-paris.jpg";
+import cityLondon from "@/assets/city-london.jpg";
 
 const cities = [
-  { id: "kuala-lumpur", name: "Kuala Lumpur", country: "Malaysia", routes: 8, img: cityKL },
-  { id: "bangkok", name: "Bangkok", country: "Thailand", routes: 12, img: cityBangkok },
-  { id: "lisbon", name: "Lisbon", country: "Portugal", routes: 6, img: cityLisbon },
+  { id: "stockholm", name: "Stockholm", country: "Sweden", routes: 7, img: cityStockholm },
+  { id: "paris", name: "Paris", country: "France", routes: 14, img: cityParis },
+  { id: "london", name: "London", country: "England", routes: 10, img: cityLondon },
 ];
 
 const CitySelect = () => {
@@ -43,8 +43,8 @@ const CitySelect = () => {
               <img
                 src={city.img}
                 alt={`Illustrated view of ${city.name}`}
-                width={512}
-                height={640}
+                width={640}
+                height={512}
                 loading="lazy"
                 className="w-full h-full object-cover"
               />
