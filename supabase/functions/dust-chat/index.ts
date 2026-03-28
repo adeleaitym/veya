@@ -74,6 +74,26 @@ serve(async (req) => {
     }
 
     // Create a new conversation
+    const requestBody = {
+      visibility: "unlisted",
+      title: city ? `${city} food route` : "Veya route",
+      message: {
+        content: userContent,
+        mentions: [],
+        context: {
+          timezone: "UTC",
+          username: "veya-user",
+          profilePictureUrl: null,
+          fullName: "Veya User",
+          email: null,
+          origin: "api",
+        },
+      },
+      blocking: true,
+    };
+
+    console.log("v2 - Sending to Dust:", JSON.stringify(requestBody, null, 2));
+
     const resp = await fetch(
       `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations`,
       {
@@ -82,23 +102,7 @@ serve(async (req) => {
           Authorization: `Bearer ${DUST_API_KEY}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          visibility: "unlisted",
-          title: city ? `${city} food route` : "Veya route",
-          message: {
-            content: userContent,
-            mentions: [],
-            context: {
-              timezone: "UTC",
-              username: "veya-user",
-              profilePictureUrl: null,
-              fullName: "Veya User",
-              email: null,
-              origin: "api",
-            },
-          },
-          blocking: true,
-        }),
+        body: JSON.stringify(requestBody),
       }
     );
 
