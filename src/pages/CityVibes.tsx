@@ -126,24 +126,32 @@ const CityVibes = () => {
       let routeContent = "";
 
       if (data?.route) {
-        // Direct response (Google AI)
         routeContent = data.route;
       } else if (data?.conversationId) {
-        // Async response (Dust) — poll for completion
-        const conversationId = data.conversationId;
-        for (let i = 0; i < 60; i++) {
-          await new Promise((r) => setTimeout(r, 2000));
+        const conversationId = data.conversationId as string;
+        const POLL_INTERVAL_MS = 1200;
+        const MAX_POLL_ATTEMPTS = 25;
+
+        for (let i = 0; i < MAX_POLL_ATTEMPTS; i++) {
+          await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
           const { data: pollData, error: pollError } = await supabase.functions.invoke("poll-route", {
             body: { conversationId },
           });
           if (pollError) throw pollError;
-          if (pollData?.status === "completed" && pollData?.message) {
+
+          if (typeof pollData?.message === "string" && pollData.message.trim().length > 0) {
             routeContent = pollData.message;
             break;
           }
-          if (pollData?.status === "failed") throw new Error("Route generation failed");
+
+          if (pollData?.status === "failed") {
+            throw new Error("Route generation failed");
+          }
         }
-        if (!routeContent) throw new Error("Route generation timed out");
+
+        if (!routeContent) {
+          throw new Error("Route generation is taking too long. Please try again.");
+        }
       } else {
         throw new Error("No route data returned");
       }
@@ -156,7 +164,11 @@ const CityVibes = () => {
       generatePoster(parsed);
     } catch (err) {
       console.error("Route generation error:", err);
-      toast.error("Couldn't generate your route. Try again!");
+      const message =
+        err instanceof Error && err.message.includes("taking too long")
+          ? err.message
+          : "Couldn't generate your route. Try again!";
+      toast.error(message);
       setPhase("plan");
     }
   };
