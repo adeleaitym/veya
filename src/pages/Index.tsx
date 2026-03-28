@@ -14,9 +14,6 @@ const Index = () => {
     <div className="min-h-screen bg-background flex flex-col items-center">
       {/* Header */}
       <header className="w-full max-w-md mx-auto px-6 pt-10 pb-2 text-center">
-        <p className="text-xs font-body tracking-[0.35em] uppercase text-muted-foreground mb-2">
-          Explore · Taste · Wander
-        </p>
         <h1 className="text-7xl font-display font-bold text-foreground leading-none">
           Veya
         </h1>
