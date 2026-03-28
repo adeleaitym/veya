@@ -94,7 +94,7 @@ const CityVibes = () => {
   const [loadingPoster, setLoadingPoster] = useState(false);
 
   const cityAreas = areas[cityId || ""] || null;
-  const canSubmit = (selectedVibe || freePrompt.trim()) && groupSize && budget;
+  const canSubmit = freePrompt.trim() || selectedVibe;
 
   const handleCreate = async () => {
     if (!canSubmit) return;
@@ -102,24 +102,59 @@ const CityVibes = () => {
 
     const vibeName = vibes.find((v) => v.id === selectedVibe)?.label || selectedVibe;
     const budgetName = budgetLabels[budget || ""] || budget;
-    const vibeDescription = freePrompt.trim()
-      ? freePrompt.trim()
-      : `a ${vibeName} vibe`;
-    const prompt = `I'm in ${cityName}${area && area !== "Surprise me" ? `, specifically ${area}` : ""}. I want ${vibeDescription} evening for ${groupSize} ${groupSize === "1" ? "person" : "people"} on a ${budgetName?.toLowerCase()} budget. Plan a perfect evening route — this can include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment, or anything that makes a great night out!`;
+    
+    let prompt = `I'm in ${cityName}`;
+    if (area && area !== "Surprise me") prompt += `, specifically ${area}`;
+    prompt += ". ";
+    
+    if (freePrompt.trim()) {
+      prompt += freePrompt.trim();
+    } else {
+      prompt += `I want a ${vibeName} vibe evening`;
+    }
+    
+    if (groupSize) prompt += ` for ${groupSize} ${groupSize === "1" ? "person" : "people"}`;
+    if (budgetName) prompt += ` on a ${budgetName.toLowerCase()} budget`;
+    prompt += ". Plan a perfect evening route — this can include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment, or anything that makes a great night out!";
 
     try {
-      const { data, error } = await supabase.functions.invoke("generate-route", {
+      // Step 1: Start the conversation (returns immediately)
+      const { data: startData, error: startError } = await supabase.functions.invoke("generate-route", {
         body: { message: prompt, city: cityName },
       });
-      if (error) throw error;
+      if (startError) throw startError;
 
-      const message = data?.message || "";
-      const jsonMatch = message.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, message];
-      const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || message);
-      setRoute(parsed);
-      setPhase("route");
-      generateStopImages(parsed.stops);
-      generatePoster(parsed);
+      const conversationId = startData?.conversationId;
+      if (!conversationId) throw new Error("No conversation ID returned");
+
+      // Step 2: Poll for completion
+      let attempts = 0;
+      const maxAttempts = 60;
+      while (attempts < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 2000));
+        attempts++;
+
+        const { data: pollData, error: pollError } = await supabase.functions.invoke("poll-route", {
+          body: { conversationId },
+        });
+        if (pollError) throw pollError;
+
+        if (pollData?.status === "completed" && pollData?.message) {
+          const message = pollData.message;
+          const jsonMatch = message.match(/```(?:json)?\s*([\s\S]*?)```/) || [null, message];
+          const parsed: GeneratedRoute = JSON.parse(jsonMatch[1] || message);
+          setRoute(parsed);
+          setPhase("route");
+          generateStopImages(parsed.stops);
+          generatePoster(parsed);
+          return;
+        } else if (pollData?.status === "failed") {
+          throw new Error("Route generation failed");
+        }
+        // else still processing, continue polling
+      }
+
+      throw new Error("Route generation timed out");
     } catch (err) {
       console.error("Route generation error:", err);
       toast.error("Couldn't generate your route. Try again!");
