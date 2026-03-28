@@ -232,7 +232,7 @@ const CityVibes = () => {
                   }}
                   className={`zine-sticker ${selectedVibe === vibe.id && !freePrompt ? "selected" : ""} ${tiltClasses[i % tiltClasses.length]}`}
                 >
-                  <img src={vibe.icon} alt={vibe.label} className="w-6 h-6 object-contain" />
+                  <span className="vibe-emoji">{vibe.emoji}</span>
                   <span>{vibe.label}</span>
                 </button>
               ))}
