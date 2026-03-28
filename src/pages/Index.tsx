@@ -5,9 +5,9 @@ import iconCoffee from "@/assets/icon-coffee.png";
 import iconPin from "@/assets/icon-pin.png";
 
 const features = [
-  { icon: iconPin, label: "Curated routes", desc: "Handpicked paths through iconic neighborhoods" },
-  { icon: iconNoodles, label: "Local eats", desc: "From street stalls to hidden gems" },
-  { icon: iconCoffee, label: "Café stops", desc: "Rest, refuel, and people-watch" },
+  { icon: iconPin, label: "Pick your vibe", desc: "Choose a mood and we design the night" },
+  { icon: iconNoodles, label: "Curated experiences", desc: "Dinner, drinks, activities — all planned for you" },
+  { icon: iconCoffee, label: "Share & enjoy", desc: "Send it as a card, live it together" },
 ];
 
 const Index = () => {
