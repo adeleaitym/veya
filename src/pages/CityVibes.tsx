@@ -3,23 +3,22 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-import vibeHiddenGems from "@/assets/vibe-hidden-gems.jpg";
-import vibeDateNight from "@/assets/vibe-date-night.jpg";
-import vibeAfterWork from "@/assets/vibe-after-work.jpg";
-import vibeSweetStops from "@/assets/vibe-sweet-stops.jpg";
+const vibes = [
+  { id: "hidden-gems", label: "Hidden Gems", emoji: "🕵️" },
+  { id: "date-night", label: "Date Night", emoji: "🕯️" },
+  { id: "after-work", label: "After Work", emoji: "🍻" },
+  { id: "sweet-stops", label: "Sweet Stops", emoji: "🍰" },
+  { id: "brunch", label: "Brunch", emoji: "🥞" },
+  { id: "rooftop", label: "Rooftop", emoji: "🌇" },
+  { id: "street-food", label: "Street Food", emoji: "🥡" },
+  { id: "late-night", label: "Late Night", emoji: "🌙" },
+];
 
-const cityNames: Record<string, string> = {
+const cityNameMap: Record<string, string> = {
   stockholm: "Stockholm", paris: "Paris", london: "London", tokyo: "Tokyo",
   barcelona: "Barcelona", istanbul: "Istanbul", "new-york": "New York",
   "mexico-city": "Mexico City", marrakech: "Marrakech", bangkok: "Bangkok",
 };
-
-const vibes = [
-  { id: "hidden-gems", label: "Hidden Gems", tagline: "Behind the unmarked door", img: vibeHiddenGems },
-  { id: "date-night", label: "Date Night", tagline: "Candlelight & conversation", img: vibeDateNight },
-  { id: "after-work", label: "After Work", tagline: "Unwind with the crew", img: vibeAfterWork },
-  { id: "sweet-stops", label: "Sweet Stops", tagline: "Life is short, eat dessert", img: vibeSweetStops },
-];
 
 const groupSizes = ["1", "2", "3–4", "5+"];
 const budgets = ["Low", "Medium", "High"];
@@ -44,7 +43,7 @@ interface GeneratedRoute {
 const CityVibes = () => {
   const { cityId } = useParams<{ cityId: string }>();
   const navigate = useNavigate();
-  const cityName = cityNames[cityId || ""] || cityId || "";
+  const cityName = cityNameMap[cityId || ""] || cityId || "";
 
   const [selectedVibe, setSelectedVibe] = useState<string | null>(null);
   const [groupSize, setGroupSize] = useState<string | null>(null);
@@ -197,32 +196,21 @@ const CityVibes = () => {
             <h2 className="text-2xl font-display font-bold text-foreground">
               What are you in the mood for?
             </h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-wrap gap-2">
               {vibes.map((vibe) => {
                 const selected = selectedVibe === vibe.id;
                 return (
                   <button
                     key={vibe.id}
                     onClick={() => setSelectedVibe(vibe.id)}
-                    className={`rounded-2xl overflow-hidden border-2 transition-all text-left ${
+                    className={`px-4 py-2.5 rounded-full font-body text-sm font-semibold transition-all flex items-center gap-1.5 ${
                       selected
-                        ? "border-primary shadow-lg scale-[1.02]"
-                        : "border-border/30 hover:border-border/60"
+                        ? "bg-primary text-primary-foreground shadow-md scale-[1.03]"
+                        : "bg-card/60 text-foreground/80 border border-border/40 hover:bg-card"
                     }`}
                   >
-                    <div className="aspect-[4/5] overflow-hidden relative">
-                      <img src={vibe.img} alt={vibe.label} width={512} height={640} loading="lazy" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                      {selected && (
-                        <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-                          <span className="text-primary-foreground text-sm">✓</span>
-                        </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <p className="text-lg font-display font-bold text-white leading-tight">{vibe.label}</p>
-                        <p className="text-white/70 font-body text-xs mt-0.5">{vibe.tagline}</p>
-                      </div>
-                    </div>
+                    <span className="text-base">{vibe.emoji}</span>
+                    {vibe.label}
                   </button>
                 );
               })}
