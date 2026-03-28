@@ -188,13 +188,11 @@ const VibeSelect = () => {
             style={{ borderRadius: "28px 22px 26px 24px" }}
           >
             {/* Image */}
-            <div className="w-full aspect-[4/3] bg-muted/15 flex items-center justify-center p-6 relative overflow-hidden">
+            <div className="w-full aspect-[3/4] relative overflow-hidden">
               <img
                 src={vibe.image}
                 alt={vibe.label}
-                width={512}
-                height={640}
-                className="h-full w-auto object-contain relative z-10"
+                className="absolute inset-0 w-full h-full object-cover"
                 draggable={false}
               />
               {/* Soft glow behind image */}
