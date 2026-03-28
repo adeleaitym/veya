@@ -21,29 +21,30 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY not configured");
 
     const systemPrompt = `You are Veya, an evening route planner AI. The user is exploring ${city || "a city"}. Based on their preferences, generate a curated evening route with 4-6 specific stops. Include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment — anything that makes a great night out! For each stop provide: a name (real-sounding venue names), a type (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack), a short vivid description (1 sentence max), and an estimated duration. Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure: {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string","description":"string","duration":"string"}]}`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-      }),
-    });
+    const aiResp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            { role: "user", parts: [{ text: `${systemPrompt}\n\nUser request: ${message}` }] },
+          ],
+          generationConfig: {
+            responseMimeType: "application/json",
+          },
+        }),
+      }
+    );
 
     if (!aiResp.ok) {
       const errText = await aiResp.text();
-      console.error("AI gateway error:", aiResp.status, errText);
+      console.error("Google AI error:", aiResp.status, errText);
 
       if (aiResp.status === 429) {
         return new Response(
@@ -51,18 +52,12 @@ serve(async (req) => {
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
 
-      throw new Error(`AI error [${aiResp.status}]`);
+      throw new Error(`Google AI error [${aiResp.status}]`);
     }
 
     const aiData = await aiResp.json();
-    const content = aiData.choices?.[0]?.message?.content || "";
+    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
     return new Response(
       JSON.stringify({ route: content }),
