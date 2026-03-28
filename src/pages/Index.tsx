@@ -46,14 +46,14 @@ const Index = () => {
             className="flex items-start gap-4 bg-card/50 rounded-xl p-4 animate-fade-up"
             style={{ animationDelay: `${i * 150}ms`, animationFillMode: "backwards" }}
           >
-            <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-lg bg-secondary/60 flex items-center justify-center flex-shrink-0">
               <img
                 src={f.icon}
                 alt={f.label}
                 width={32}
                 height={32}
                 loading="lazy"
-                className="w-8 h-8 object-contain invert"
+                className="w-8 h-8 object-contain"
               />
             </div>
             <div>
