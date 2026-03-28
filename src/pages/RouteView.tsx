@@ -136,13 +136,22 @@ const RouteView = () => {
         </div>
       </div>
 
-      {/* CTA */}
-      <div className="w-full max-w-md mx-auto px-6 py-6">
+      {/* CTAs */}
+      <div className="w-full max-w-md mx-auto px-6 py-6 space-y-3">
         <button
           onClick={() => navigate(`/tonight?route=${encodeURIComponent(JSON.stringify(route))}`)}
           className="zine-btn"
         >
           Start my night →
+        </button>
+        <button
+          onClick={() => {
+            const stopsParam = encodeURIComponent(JSON.stringify(route.stops));
+            navigate(`/poster?routeName=${encodeURIComponent(route.routeName)}&city=${encodeURIComponent(where)}&stops=${stopsParam}`);
+          }}
+          className="w-full py-3 font-body text-base font-semibold text-secondary hover:text-secondary/80 transition-colors"
+        >
+          Get your poster ✦
         </button>
       </div>
     </div>

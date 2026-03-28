@@ -10,6 +10,7 @@ import RouteView from "./pages/RouteView.tsx";
 import StopDetail from "./pages/StopDetail.tsx";
 import Tonight from "./pages/Tonight.tsx";
 import Feedback from "./pages/Feedback.tsx";
+import RoutePoster from "./pages/RoutePoster.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/stop" element={<StopDetail />} />
           <Route path="/tonight" element={<Tonight />} />
           <Route path="/feedback" element={<Feedback />} />
+          <Route path="/poster" element={<RoutePoster />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
