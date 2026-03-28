@@ -8,71 +8,75 @@ const corsHeaders = {
 
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
-async function generateWithLovableAI(routeName: string, city: string, stops: any[]): Promise<string> {
-  const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-  if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+const stopEmoji: Record<string, string> = {
+  drink: "🍷", cocktail: "🍸", coffee: "☕", appetizer: "🥗",
+  main: "🍽️", dessert: "🍰", snack: "🥨", experience: "✨",
+};
 
-  const stopsList = stops
-    .map((s: any, i: number) => `${i + 1}. ${s.name} (${s.type})`)
-    .join(", ");
+function generateSVGPoster(routeName: string, city: string, stops: any[]): string {
+  const colors = ["#E8485C", "#F5A623", "#4ECDC4", "#7B68EE", "#FF6B9D", "#45B7D1"];
 
-  const prompt = `Create a beautiful illustrated poster for an evening out in ${city || "a city"}. The route is called "${routeName}" with these stops: ${stopsList}. 
-Style: editorial magazine illustration, hand-drawn ink lines with watercolor washes, warm evening tones (amber, coral, deep blue night sky). Show a stylized city scene with tiny illustrated people walking between venues connected by a dotted path. Include subtle icons for each stop type. Portrait orientation, elegant and shareable. No text, no letters, no words.`;
+  const stopsMarkup = stops.map((s: any, i: number) => {
+    const y = 280 + i * 110;
+    const color = colors[i % colors.length];
+    const emoji = stopEmoji[s.type] || "📍";
+    return `
+      <circle cx="60" cy="${y}" r="18" fill="${color}" opacity="0.15"/>
+      <circle cx="60" cy="${y}" r="10" fill="${color}"/>
+      <text x="60" y="${y + 5}" text-anchor="middle" font-size="10">${emoji}</text>
+      ${i < stops.length - 1 ? `<line x1="60" y1="${y + 18}" x2="60" y2="${y + 92}" stroke="${color}" stroke-width="2" stroke-dasharray="4,4" opacity="0.3"/>` : ''}
+      <text x="90" y="${y - 6}" font-family="Georgia, serif" font-size="16" font-weight="bold" fill="#1a1a1a">${escapeXml(s.name)}</text>
+      <text x="90" y="${y + 12}" font-family="system-ui, sans-serif" font-size="11" fill="#888">${escapeXml((s.description || '').substring(0, 50))}${(s.description || '').length > 50 ? '…' : ''}</text>
+      <text x="340" y="${y}" font-family="system-ui, sans-serif" font-size="10" fill="#aaa" text-anchor="end">${escapeXml(s.duration || '')}</text>
+    `;
+  }).join('');
 
-  const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${LOVABLE_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "google/gemini-3.1-flash-image-preview",
-      messages: [{ role: "user", content: prompt }],
-      modalities: ["image", "text"],
-    }),
-  });
+  const height = 320 + stops.length * 110;
 
-  if (!aiResp.ok) {
-    const errText = await aiResp.text();
-    console.error("Lovable AI image gen error:", aiResp.status, errText);
-    throw new Error(`Image generation failed: ${aiResp.status}`);
-  }
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 ${height}" width="380" height="${height}">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#FFF8F0"/>
+        <stop offset="100%" stop-color="#FFF0E6"/>
+      </linearGradient>
+    </defs>
+    <rect width="380" height="${height}" fill="url(#bg)" rx="20"/>
+    <rect x="6" y="6" width="368" height="${height - 12}" fill="none" stroke="#e0d5c8" stroke-width="1" rx="16" stroke-dasharray="6,4"/>
+    
+    <!-- Header -->
+    <text x="190" y="55" text-anchor="middle" font-family="Georgia, serif" font-size="14" fill="#c4956a" letter-spacing="4">YOUR EVENING</text>
+    <text x="190" y="110" text-anchor="middle" font-family="Georgia, serif" font-size="26" font-weight="bold" fill="#1a1a1a">${escapeXml(truncate(routeName, 28))}</text>
+    ${city ? `<text x="190" y="140" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" fill="#999">${escapeXml(city)}</text>` : ''}
+    
+    <line x1="140" y1="165" x2="240" y2="165" stroke="#ddd" stroke-width="1"/>
+    
+    <text x="190" y="195" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#bbb" letter-spacing="3">${stops.length} STOPS</text>
+    
+    <!-- Stops -->
+    ${stopsMarkup}
+    
+    <!-- Footer -->
+    <text x="190" y="${height - 35}" text-anchor="middle" font-family="Georgia, serif" font-size="20" font-weight="bold" fill="#c4956a">Veya ✦</text>
+  </svg>`;
+}
 
-  const aiData = await aiResp.json();
-  const parts = aiData.choices?.[0]?.message?.content;
+function escapeXml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
-  if (Array.isArray(parts)) {
-    for (const part of parts) {
-      if (part.type === "image_url" && part.image_url?.url) {
-        return part.image_url.url;
-      }
-    }
-  }
-
-  throw new Error("No image returned from AI");
+function truncate(s: string, max: number): string {
+  return s.length > max ? s.substring(0, max - 1) + '…' : s;
 }
 
 async function generateWithDust(routeName: string, city: string, stops: any[]): Promise<{ imageUrl?: string; textContent?: string }> {
   const DUST_API_KEY = Deno.env.get("DUST_API_KEY");
   const DUST_WORKSPACE_ID = Deno.env.get("DUST_WORKSPACE_ID");
 
-  if (!DUST_API_KEY || !DUST_WORKSPACE_ID) {
-    throw new Error("Dust credentials not configured");
-  }
+  if (!DUST_API_KEY || !DUST_WORKSPACE_ID) throw new Error("Dust not configured");
 
   const stopsList = stops
     .map((s: any, i: number) => `${i + 1}. ${s.name} (${s.type}) - ${s.description || ""}`)
     .join("\n");
-
-  const userMessage = `Create a beautiful illustrated poster for this evening route:
-
-Route: "${routeName}"
-City: ${city || "Unknown"}
-
-Stops:
-${stopsList}
-
-Please generate a visually stunning poster illustration in your signature style. The poster should capture the mood and energy of this evening out, with artistic representations of each stop along a visual path. Portrait orientation, stylish and shareable.`;
 
   const convResp = await fetch(
     `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations`,
@@ -86,16 +90,9 @@ Please generate a visually stunning poster illustration in your signature style.
         visibility: "unlisted",
         title: `Poster: ${routeName}`,
         message: {
-          content: userMessage,
+          content: `Create a beautiful illustrated poster for this evening route:\n\nRoute: "${routeName}"\nCity: ${city || "Unknown"}\n\nStops:\n${stopsList}\n\nPlease generate a visually stunning poster illustration. Portrait orientation, stylish and shareable.`,
           mentions: [{ configurationId: "StyleForge" }],
-          context: {
-            timezone: "Europe/Stockholm",
-            username: "veya-app",
-            profilePictureUrl: null,
-            fullName: "Veya App",
-            email: null,
-            origin: "api",
-          },
+          context: { timezone: "Europe/Stockholm", username: "veya-app", profilePictureUrl: null, fullName: "Veya App", email: null, origin: "api" },
         },
         blocking: true,
       }),
@@ -104,33 +101,28 @@ Please generate a visually stunning poster illustration in your signature style.
 
   if (!convResp.ok) {
     const errText = await convResp.text();
-    console.error("Dust error:", convResp.status, errText.substring(0, 500));
+    console.error("Dust error:", convResp.status, errText.substring(0, 300));
     throw new Error(`Dust API error: ${convResp.status}`);
   }
 
   const convData = await convResp.json();
-  const conversation = convData.conversation;
-  const agentMessages = conversation?.content?.flat()?.filter(
+  const agentMessages = convData.conversation?.content?.flat()?.filter(
     (msg: any) => msg.type === "agent_message"
   ) || [];
 
   for (const agentMsg of agentMessages) {
+    if (agentMsg.rawContents) {
+      for (const content of agentMsg.rawContents) {
+        if (content.contentType?.startsWith("image/") && content.url) return { imageUrl: content.url };
+      }
+    }
     if (agentMsg.content) {
       const text = agentMsg.content;
       const mdImgMatch = text.match(/!\[.*?\]\((https?:\/\/[^\s)]+)\)/);
       if (mdImgMatch) return { imageUrl: mdImgMatch[1] };
       const imgMatch = text.match(/https?:\/\/[^\s"']+\.(png|jpg|jpeg|gif|webp|svg)[^\s"']*/i);
       if (imgMatch) return { imageUrl: imgMatch[0] };
-      const base64Match = text.match(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/);
-      if (base64Match) return { imageUrl: base64Match[0] };
       return { textContent: text };
-    }
-    if (agentMsg.rawContents) {
-      for (const content of agentMsg.rawContents) {
-        if (content.contentType?.startsWith("image/") && content.url) {
-          return { imageUrl: content.url };
-        }
-      }
     }
   }
 
@@ -144,35 +136,28 @@ serve(async (req) => {
 
   try {
     const { routeName, city, stops } = await req.json();
-
     if (!routeName || !stops || !Array.isArray(stops)) {
-      return new Response(
-        JSON.stringify({ error: "Missing route details" }),
-        { status: 400, headers: jsonHeaders }
-      );
+      return new Response(JSON.stringify({ error: "Missing route details" }), { status: 400, headers: jsonHeaders });
     }
 
-    // Try Dust first, fall back to Lovable AI
+    // Try Dust first
     try {
       const dustResult = await generateWithDust(routeName, city, stops);
       if (dustResult.imageUrl) {
-        return new Response(
-          JSON.stringify({ imageUrl: dustResult.imageUrl, provider: "dust-styleforge" }),
-          { headers: jsonHeaders }
-        );
-      }
-      if (dustResult.textContent) {
-        // Dust returned text only — try Lovable AI for an actual image instead
-        throw new Error("Dust returned text only, trying image fallback");
+        return new Response(JSON.stringify({ imageUrl: dustResult.imageUrl, provider: "dust-styleforge" }), { headers: jsonHeaders });
       }
     } catch (dustErr) {
-      console.log("Dust unavailable, falling back to Lovable AI:", (dustErr as Error).message);
+      console.log("Dust unavailable:", (dustErr as Error).message);
     }
 
-    // Fallback: Lovable AI image generation
-    const imageUrl = await generateWithLovableAI(routeName, city, stops);
+    // Fallback: generate SVG poster
+    console.log("Using SVG fallback poster");
+    const svg = generateSVGPoster(routeName, city, stops);
+    const svgBase64 = btoa(unescape(encodeURIComponent(svg)));
+    const dataUrl = `data:image/svg+xml;base64,${svgBase64}`;
+
     return new Response(
-      JSON.stringify({ imageUrl, provider: "lovable-ai" }),
+      JSON.stringify({ imageUrl: dataUrl, provider: "svg-fallback" }),
       { headers: jsonHeaders }
     );
   } catch (e) {
