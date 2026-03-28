@@ -23,51 +23,51 @@ const cities = [
   { id: "bangkok", name: "Bangkok", country: "Thailand", routes: 13, img: cityBangkok },
 ];
 
+const tiltClasses = ["tilt-1", "tilt-2", "tilt-3", "tilt-4", "tilt-5", "tilt-6", "tilt-7", "tilt-8"];
+
 const CitySelect = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
+    <div className="min-h-screen paper-texture flex flex-col">
       <header className="w-full max-w-md mx-auto px-6 pt-10 pb-2">
         <button
           onClick={() => navigate("/")}
-          className="text-muted-foreground font-body text-sm mb-4 hover:text-foreground transition-colors"
+          className="text-ink/40 font-display text-lg mb-4 hover:text-ink/70 transition-colors"
         >
-          ← Back
+          ← back
         </button>
-        <h1 className="text-4xl font-display font-bold text-foreground leading-none">
+        <h1 className="text-5xl font-display font-bold text-ink leading-none ink-underline">
           Pick a city
         </h1>
-        <p className="text-foreground leading-none text-lg font-serif font-thin mt-2">
-          Where are you heading?
+        <p className="text-ink/40 text-xl font-display mt-3 tilt-3">
+          Where are you heading? ✈
         </p>
       </header>
 
-      {/* City grid */}
-      <section className="w-full max-w-md mx-auto px-6 mt-6 grid grid-cols-2 gap-3 pb-16">
+      <section className="w-full max-w-md mx-auto px-6 mt-8 grid grid-cols-2 gap-4 pb-16">
         {cities.map((city, i) => (
           <button
             key={city.id}
             onClick={() => navigate(`/city/${city.id}`)}
-            className="rounded-2xl overflow-hidden bg-card/50 border border-border shadow-md hover:shadow-lg hover:scale-[1.03] transition-all animate-fade-up text-left"
-            style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards" }}
+            className={`sketch-border overflow-hidden hover:scale-[1.03] transition-all animate-fade-up bg-paper ${tiltClasses[i % tiltClasses.length]}`}
+            style={{ animationDelay: `${i * 60}ms`, animationFillMode: "backwards", padding: 0 }}
           >
             <div className="aspect-square overflow-hidden">
               <img
                 src={city.img}
                 alt={`Illustrated view of ${city.name}`}
-                width={640}
+                width={512}
                 height={512}
                 loading="lazy"
                 className="w-full h-full object-cover"
               />
             </div>
             <div className="px-3 py-2.5">
-              <h2 className="text-base font-display font-bold text-foreground leading-tight">
+              <h2 className="text-lg font-display font-bold text-ink leading-tight">
                 {city.name}
               </h2>
-              <p className="text-xs font-body text-muted-foreground mt-0.5">
+              <p className="text-xs font-body text-ink/35 mt-0.5">
                 {city.country} · {city.routes} routes
               </p>
             </div>

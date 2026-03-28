@@ -13,23 +13,23 @@ const features = [
 const Index = () => {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center">
+    <div className="min-h-screen paper-texture flex flex-col items-center">
       {/* Header */}
-      <header className="w-full max-w-md mx-auto px-6 pt-10 pb-2 text-center">
-        <h1 className="text-7xl font-display font-bold text-foreground leading-none">
+      <header className="w-full max-w-md mx-auto px-6 pt-12 pb-2 text-center">
+        <h1 className="text-8xl font-display font-bold text-ink leading-none">
           Veya
         </h1>
-        <p className="text-foreground leading-none text-lg font-serif font-thin">
-          Curated city journeys<br />through food
+        <p className="text-ink/40 text-xl font-display mt-2">
+          Curated city journeys through food ✦
         </p>
       </header>
 
       {/* Hero map */}
-      <section className="w-full max-w-md mx-auto px-4 mt-4">
-        <div className="rounded-2xl overflow-hidden shadow-xl border-2 border-border">
+      <section className="w-full max-w-md mx-auto px-5 mt-6">
+        <div className="sketch-border overflow-hidden tilt-2">
           <img
             src={heroMap}
-            alt="Illustrated city food map with winding pink path through green neighborhoods"
+            alt="Illustrated city food map with winding path"
             width={768}
             height={960}
             className="w-full h-auto object-cover"
@@ -38,14 +38,15 @@ const Index = () => {
       </section>
 
       {/* Features */}
-      <section className="w-full max-w-md mx-auto px-6 mt-10 space-y-6">
+      <section className="w-full max-w-md mx-auto px-6 mt-10 space-y-5">
         {features.map((f, i) => (
           <div
             key={f.label}
-            className="flex items-start gap-4 bg-card/50 rounded-xl p-4 animate-fade-up"
+            className={`zine-card flex items-start gap-4 animate-fade-up ${["tilt-1", "tilt-5", "tilt-3"][i]}`}
             style={{ animationDelay: `${i * 150}ms`, animationFillMode: "backwards" }}
           >
-            <div className="w-12 h-12 rounded-lg bg-secondary/60 flex items-center justify-center flex-shrink-0">
+            {i === 0 && <div className="tape-strip" />}
+            <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
               <img
                 src={f.icon}
                 alt={f.label}
@@ -56,10 +57,10 @@ const Index = () => {
               />
             </div>
             <div>
-              <h3 className="text-sm font-body font-semibold tracking-wide uppercase text-foreground">
+              <h3 className="text-sm font-display text-ink font-bold text-lg">
                 {f.label}
               </h3>
-              <p className="text-sm font-body text-muted-foreground mt-0.5">
+              <p className="text-xs font-body text-ink/40 mt-0.5">
                 {f.desc}
               </p>
             </div>
@@ -71,12 +72,12 @@ const Index = () => {
       <section className="w-full max-w-md mx-auto px-6 mt-12 mb-16">
         <button
           onClick={() => navigate("/cities")}
-          className="w-full rounded-full text-base font-body font-semibold tracking-wide h-14 bg-primary text-primary-foreground hover:brightness-110 transition-all shadow-lg"
+          className="zine-btn"
         >
-          Start your route
+          Start your route →
         </button>
-        <p className="text-center text-xs font-body text-muted-foreground mt-4">
-          Available in Kuala Lumpur, Bangkok & Lisbon
+        <p className="text-center text-xs font-display text-ink/30 mt-4 text-base">
+          Available in 10 cities worldwide ✦
         </p>
       </section>
     </div>
