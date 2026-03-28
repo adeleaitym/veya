@@ -24,7 +24,7 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const prompt = `Create a flat graphic illustration in the style of a Korean travel poster: bold flat colors, simple geometric shapes, minimal detail, no text or letters anywhere in the image. The scene depicts: "${stopName}" - a ${stopType} spot in ${city || "a city"}. ${stopDescription || ""}. Use a limited palette of sage green, coral pink, cream white, and charcoal black. Clean vector-like style with tiny illustrated people figures. No gradients, no photorealism, no 3D effects. Square composition.`;
+    const prompt = `Clean line art illustration, white background, thin black ink outlines, minimal color only hot pink accents and small green plant details. The scene depicts: "${stopName}" - a ${stopType} spot in ${city || "a city"}. ${stopDescription || ""}. Hand-drawn editorial illustration style, tiny line-drawn people, no text no letters, clean and stylish. Square composition.`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
