@@ -69,7 +69,10 @@ const Index = () => {
 
       {/* CTA */}
       <section className="w-full max-w-md mx-auto px-6 mt-12 mb-16">
-        <button className="w-full rounded-full text-base font-body font-semibold tracking-wide h-14 bg-primary text-primary-foreground hover:brightness-110 transition-all shadow-lg">
+        <button
+          onClick={() => navigate("/cities")}
+          className="w-full rounded-full text-base font-body font-semibold tracking-wide h-14 bg-primary text-primary-foreground hover:brightness-110 transition-all shadow-lg"
+        >
           Start your route
         </button>
         <p className="text-center text-xs font-body text-muted-foreground mt-4">
