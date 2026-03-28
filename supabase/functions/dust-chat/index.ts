@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// Dust API integration for Veya route generation
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -19,7 +18,7 @@ serve(async (req) => {
     const DUST_WORKSPACE_ID = Deno.env.get("DUST_WORKSPACE_ID");
     if (!DUST_WORKSPACE_ID) throw new Error("DUST_WORKSPACE_ID is not configured");
 
-    const { message, city, conversationId } = await req.json();
+    const { message, city } = await req.json();
 
     if (!message || typeof message !== "string" || message.length > 2000) {
       return new Response(
@@ -36,44 +35,8 @@ serve(async (req) => {
       ? `${systemContext}\n\nUser request: ${message}`
       : message;
 
-    // If we have a conversationId, post a message to existing conversation
-    if (conversationId) {
-      const msgResp = await fetch(
-        `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations/${conversationId}/messages`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${DUST_API_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            content: userContent,
-            mentions: [],
-            context: {
-              timezone: "UTC",
-              username: "veya-user",
-              profilePictureUrl: null,
-              fullName: "Veya User",
-              email: null,
-              origin: "api",
-            },
-          }),
-        }
-      );
+    console.log("v3 - Creating Dust conversation");
 
-      if (!msgResp.ok) {
-        const errText = await msgResp.text();
-        console.error("Dust message error:", msgResp.status, errText);
-        throw new Error(`Dust API error [${msgResp.status}]: ${errText}`);
-      }
-
-      const msgData = await msgResp.json();
-      return new Response(JSON.stringify(msgData), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Create a new conversation
     const requestBody = {
       visibility: "unlisted",
       title: city ? `${city} food route` : "Veya route",
@@ -92,7 +55,7 @@ serve(async (req) => {
       blocking: true,
     };
 
-    console.log("v2 - Sending to Dust:", JSON.stringify(requestBody, null, 2));
+    console.log("v3 - Request body:", JSON.stringify(requestBody));
 
     const resp = await fetch(
       `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations`,
@@ -121,13 +84,10 @@ serve(async (req) => {
     }
 
     const data = await resp.json();
-
-    // Extract the assistant's response from the conversation
     const conversation = data.conversation;
     let assistantMessage = "";
 
     if (conversation?.content) {
-      // content is an array of message arrays
       for (const msgGroup of conversation.content) {
         for (const msg of msgGroup) {
           if (msg.type === "agent_message" && msg.content) {
@@ -136,6 +96,8 @@ serve(async (req) => {
         }
       }
     }
+
+    console.log("v3 - Success, got response");
 
     return new Response(
       JSON.stringify({
