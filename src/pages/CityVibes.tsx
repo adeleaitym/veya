@@ -190,32 +190,21 @@ const CityVibes = () => {
             <h2 className="text-2xl font-display font-bold text-foreground">
               What are you in the mood for?
             </h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-wrap gap-2">
               {vibes.map((vibe) => {
                 const selected = selectedVibe === vibe.id;
                 return (
                   <button
                     key={vibe.id}
                     onClick={() => setSelectedVibe(vibe.id)}
-                    className={`rounded-2xl overflow-hidden border-2 transition-all text-left ${
+                    className={`px-4 py-2.5 rounded-full font-body text-sm font-semibold transition-all flex items-center gap-1.5 ${
                       selected
-                        ? "border-primary shadow-lg scale-[1.02]"
-                        : "border-border/30 hover:border-border/60"
+                        ? "bg-primary text-primary-foreground shadow-md scale-[1.03]"
+                        : "bg-card/60 text-foreground/80 border border-border/40 hover:bg-card"
                     }`}
                   >
-                    <div className="aspect-[4/5] overflow-hidden relative">
-                      <img src={vibe.img} alt={vibe.label} width={512} height={640} loading="lazy" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                      {selected && (
-                        <div className="absolute top-3 right-3 w-7 h-7 rounded-full bg-primary flex items-center justify-center">
-                          <span className="text-primary-foreground text-sm">✓</span>
-                        </div>
-                      )}
-                      <div className="absolute bottom-0 left-0 right-0 p-3">
-                        <p className="text-lg font-display font-bold text-white leading-tight">{vibe.label}</p>
-                        <p className="text-white/70 font-body text-xs mt-0.5">{vibe.tagline}</p>
-                      </div>
-                    </div>
+                    <span className="text-base">{vibe.emoji}</span>
+                    {vibe.label}
                   </button>
                 );
               })}
