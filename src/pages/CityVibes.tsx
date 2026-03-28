@@ -1,29 +1,50 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+import vibeHiddenGems from "@/assets/vibe-hidden-gems.png";
+import vibeDateNight from "@/assets/vibe-date-night.png";
+import vibeAfterWork from "@/assets/vibe-after-work.png";
+import vibeSweetStops from "@/assets/vibe-sweet-stops.png";
+import vibeBrunch from "@/assets/vibe-brunch.png";
+import vibeRooftop from "@/assets/vibe-rooftop.png";
+import vibeStreetFood from "@/assets/vibe-street-food.png";
+import vibeLatNight from "@/assets/vibe-late-night.png";
+import vibeSpanishNight from "@/assets/vibe-spanish-night.png";
+import vibePilatesGirl from "@/assets/vibe-pilates-girl.png";
+import vibeJazzEvening from "@/assets/vibe-jazz-evening.png";
+import vibeArtCrawl from "@/assets/vibe-art-crawl.png";
+import vibeVintageHunt from "@/assets/vibe-vintage-hunt.png";
+import vibeWineSnob from "@/assets/vibe-wine-snob.png";
+import vibeCoffeeNerd from "@/assets/vibe-coffee-nerd.png";
+import vibeSunsetChaser from "@/assets/vibe-sunset-chaser.png";
+import vibeBookworm from "@/assets/vibe-bookworm.png";
+import vibePartyMode from "@/assets/vibe-party-mode.png";
+import vibeLocalLife from "@/assets/vibe-local-life.png";
+import vibeWellnessReset from "@/assets/vibe-wellness-reset.png";
+
 const vibes = [
-  { id: "hidden-gems", label: "Hidden Gems", emoji: "🔮" },
-  { id: "date-night", label: "Date Night", emoji: "🕯️" },
-  { id: "after-work", label: "After Work", emoji: "🍻" },
-  { id: "sweet-stops", label: "Sweet Stops", emoji: "🧁" },
-  { id: "brunch", label: "Brunch", emoji: "🥞" },
-  { id: "rooftop", label: "Rooftop", emoji: "🌇" },
-  { id: "street-food", label: "Street Food", emoji: "🍜" },
-  { id: "late-night", label: "Late Night", emoji: "🌙" },
-  { id: "spanish-night", label: "Spanish Night", emoji: "💃" },
-  { id: "pilates-girl", label: "Pilates Girl", emoji: "🧘‍♀️" },
-  { id: "jazz-evening", label: "Jazz Evening", emoji: "🎷" },
-  { id: "art-crawl", label: "Art Crawl", emoji: "🎨" },
-  { id: "vintage-hunt", label: "Vintage Hunt", emoji: "🪩" },
-  { id: "wine-snob", label: "Wine Snob", emoji: "🍷" },
-  { id: "coffee-nerd", label: "Coffee Nerd", emoji: "☕" },
-  { id: "sunset-chaser", label: "Sunset Chaser", emoji: "🌅" },
-  { id: "bookworm", label: "Bookworm", emoji: "📚" },
-  { id: "party-mode", label: "Party Mode", emoji: "🪅" },
-  { id: "local-life", label: "Local Life", emoji: "🛒" },
-  { id: "wellness-reset", label: "Wellness Reset", emoji: "🧖‍♀️" },
+  { id: "hidden-gems", label: "Hidden Gems", icon: vibeHiddenGems },
+  { id: "date-night", label: "Date Night", icon: vibeDateNight },
+  { id: "after-work", label: "After Work", icon: vibeAfterWork },
+  { id: "sweet-stops", label: "Sweet Stops", icon: vibeSweetStops },
+  { id: "brunch", label: "Brunch", icon: vibeBrunch },
+  { id: "rooftop", label: "Rooftop", icon: vibeRooftop },
+  { id: "street-food", label: "Street Food", icon: vibeStreetFood },
+  { id: "late-night", label: "Late Night", icon: vibeLatNight },
+  { id: "spanish-night", label: "Spanish Night", icon: vibeSpanishNight },
+  { id: "pilates-girl", label: "Pilates Girl", icon: vibePilatesGirl },
+  { id: "jazz-evening", label: "Jazz Evening", icon: vibeJazzEvening },
+  { id: "art-crawl", label: "Art Crawl", icon: vibeArtCrawl },
+  { id: "vintage-hunt", label: "Vintage Hunt", icon: vibeVintageHunt },
+  { id: "wine-snob", label: "Wine Snob", icon: vibeWineSnob },
+  { id: "coffee-nerd", label: "Coffee Nerd", icon: vibeCoffeeNerd },
+  { id: "sunset-chaser", label: "Sunset Chaser", icon: vibeSunsetChaser },
+  { id: "bookworm", label: "Bookworm", icon: vibeBookworm },
+  { id: "party-mode", label: "Party Mode", icon: vibePartyMode },
+  { id: "local-life", label: "Local Life", icon: vibeLocalLife },
+  { id: "wellness-reset", label: "Wellness Reset", icon: vibeWellnessReset },
 ];
 
 const cityNameMap: Record<string, string> = {
@@ -217,12 +238,15 @@ const CityVibes = () => {
 
           <div className="ink-divider" />
 
-          {/* Vibe — quick picks */}
+          {/* Vibe — horizontal swipeable */}
           <div className="space-y-4">
             <h2 className="text-3xl font-display font-bold text-ink tilt-6">
               Pick your vibe
             </h2>
-            <div className="flex flex-wrap gap-2.5">
+            <div 
+              className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
               {vibes.map((vibe, i) => (
                 <button
                   key={vibe.id}
@@ -230,10 +254,24 @@ const CityVibes = () => {
                     setSelectedVibe(vibe.id);
                     setFreePrompt("");
                   }}
-                  className={`zine-sticker ${selectedVibe === vibe.id && !freePrompt ? "selected" : ""} ${tiltClasses[i % tiltClasses.length]}`}
+                  className={`flex-shrink-0 flex flex-col items-center gap-2 w-24 snap-start transition-all duration-200 ${
+                    selectedVibe === vibe.id && !freePrompt
+                      ? "scale-110"
+                      : "opacity-80 hover:opacity-100"
+                  } ${tiltClasses[i % tiltClasses.length]}`}
                 >
-                  <span className="vibe-emoji">{vibe.emoji}</span>
-                  <span>{vibe.label}</span>
+                  <div className={`w-20 h-20 rounded-[28%_22%_30%_20%] overflow-hidden flex items-center justify-center transition-all duration-200 ${
+                    selectedVibe === vibe.id && !freePrompt
+                      ? "ring-[3px] ring-primary shadow-lg bg-primary/10"
+                      : "bg-muted/40"
+                  }`}>
+                    <img src={vibe.icon} alt={vibe.label} className="w-16 h-16 object-contain" loading="lazy" width={512} height={512} />
+                  </div>
+                  <span className={`text-xs font-display font-bold text-center leading-tight ${
+                    selectedVibe === vibe.id && !freePrompt ? "text-primary" : "text-ink/60"
+                  }`}>
+                    {vibe.label}
+                  </span>
                 </button>
               ))}
             </div>
