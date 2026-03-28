@@ -21,48 +21,127 @@ serve(async (req) => {
       );
     }
 
+    // Try Google AI first, fall back to Dust
     const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
-    if (!GOOGLE_AI_API_KEY) throw new Error("GOOGLE_AI_API_KEY not configured");
+    const DUST_API_KEY = Deno.env.get("DUST_API_KEY");
+    const DUST_WORKSPACE_ID = Deno.env.get("DUST_WORKSPACE_ID");
 
     const systemPrompt = `You are Veya, an evening route planner AI. The user is exploring ${city || "a city"}. Based on their preferences, generate a curated evening route with 4-6 specific stops. Include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment — anything that makes a great night out! For each stop provide: a name (real-sounding venue names), a type (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack), a short vivid description (1 sentence max), and an estimated duration. Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure: {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string","description":"string","duration":"string"}]}`;
 
-    const aiResp = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+    let content = "";
+
+    // Try Google AI
+    if (GOOGLE_AI_API_KEY) {
+      try {
+        const aiResp = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\nUser request: ${message}` }] }],
+              generationConfig: { responseMimeType: "application/json" },
+            }),
+          }
+        );
+
+        if (aiResp.ok) {
+          const aiData = await aiResp.json();
+          content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          if (content) {
+            return new Response(
+              JSON.stringify({ route: content }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        } else {
+          const errText = await aiResp.text();
+          console.error("Google AI failed, falling back to Dust:", aiResp.status, errText);
+        }
+      } catch (e) {
+        console.error("Google AI error, falling back to Dust:", e);
+      }
+    }
+
+    // Fall back to Dust
+    if (!DUST_API_KEY || !DUST_WORKSPACE_ID) {
+      throw new Error("No AI provider available");
+    }
+
+    const fullMessage = `${systemPrompt}\n\nUser request: ${message}`;
+
+    // Create conversation
+    const dustResp = await fetch(
+      `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${DUST_API_KEY}`,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          contents: [
-            { role: "user", parts: [{ text: `${systemPrompt}\n\nUser request: ${message}` }] },
-          ],
-          generationConfig: {
-            responseMimeType: "application/json",
+          message: {
+            content: fullMessage,
+            mentions: [{ configurationId: "MapAnimator" }],
+            context: {
+              timezone: "UTC",
+              profilePictureUrl: null,
+              fullName: "Veya User",
+              email: null,
+              username: "veya-user",
+              origin: "api",
+            },
           },
+          visibility: "unlisted",
+          title: `Route: ${city}`,
         }),
       }
     );
 
-    if (!aiResp.ok) {
-      const errText = await aiResp.text();
-      console.error("Google AI error:", aiResp.status, errText);
-
-      if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limited. Try again shortly." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-
-      throw new Error(`Google AI error [${aiResp.status}]`);
+    if (!dustResp.ok) {
+      const errText = await dustResp.text();
+      console.error("Dust API error:", dustResp.status, errText);
+      throw new Error(`Dust API error [${dustResp.status}]`);
     }
 
-    const aiData = await aiResp.json();
-    const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
+    const dustData = await dustResp.json();
+    const conversationId = dustData.conversation?.sId;
+    if (!conversationId) throw new Error("No Dust conversation ID");
 
-    return new Response(
-      JSON.stringify({ route: content }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    // Poll Dust for up to 50 seconds
+    for (let i = 0; i < 25; i++) {
+      await new Promise((r) => setTimeout(r, 2000));
+
+      const pollResp = await fetch(
+        `https://dust.tt/api/v1/w/${DUST_WORKSPACE_ID}/assistant/conversations/${conversationId}`,
+        { headers: { Authorization: `Bearer ${DUST_API_KEY}` } }
+      );
+
+      if (!pollResp.ok) {
+        const errText = await pollResp.text();
+        console.error("Dust poll error:", pollResp.status, errText);
+        continue;
+      }
+
+      const pollData = await pollResp.json();
+      const messages = pollData.conversation?.content || [];
+
+      for (const messageGroup of messages) {
+        for (const msg of messageGroup) {
+          if (msg.type === "agent_message" && msg.status === "succeeded" && msg.content) {
+            return new Response(
+              JSON.stringify({ route: msg.content }),
+              { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+          if (msg.type === "agent_message" && (msg.status === "failed" || msg.status === "cancelled")) {
+            throw new Error("Dust agent failed");
+          }
+        }
+      }
+    }
+
+    throw new Error("Route generation timed out");
   } catch (e) {
     console.error("generate-route error:", e);
     return new Response(
