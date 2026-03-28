@@ -71,7 +71,7 @@ const Index = () => {
       {/* CTA */}
       <section className="w-full max-w-md mx-auto px-6 mt-12 mb-16">
         <button
-          onClick={() => navigate("/cities")}
+          onClick={() => navigate("/vibes")}
           className="zine-btn"
         >
           Start your route →
