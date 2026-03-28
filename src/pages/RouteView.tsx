@@ -25,6 +25,11 @@ const stopIcons: Record<string, string> = {
   dessert: "🍰",
   snack: "🥨",
   experience: "✨",
+  viewpoint: "🌅",
+  culture: "🎨",
+  music: "🎵",
+  nightlife: "🌙",
+  walk: "🚶",
 };
 
 const RouteView = () => {
