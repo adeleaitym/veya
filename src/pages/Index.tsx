@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import heroMap from "@/assets/hero-map.jpg";
+import heroIllustration from "@/assets/hero-illustration.png";
 import iconNoodles from "@/assets/icon-noodles.png";
 import iconCoffee from "@/assets/icon-coffee.png";
 import iconPin from "@/assets/icon-pin.png";
