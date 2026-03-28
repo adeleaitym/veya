@@ -69,7 +69,10 @@ const CityVibes = () => {
 
     const vibeName = vibes.find((v) => v.id === selectedVibe)?.label || selectedVibe;
     const budgetName = budgetLabels[budget || ""] || budget;
-    const prompt = `I'm in ${cityName}${area && area !== "Surprise me" ? `, specifically ${area}` : ""}. I want a ${vibeName} vibe evening for ${groupSize} ${groupSize === "1" ? "person" : "people"} on a ${budgetName?.toLowerCase()} budget. Create me a perfect food journey!`;
+    const vibeDescription = freePrompt.trim()
+      ? freePrompt.trim()
+      : `a ${vibeName} vibe`;
+    const prompt = `I'm in ${cityName}${area && area !== "Surprise me" ? `, specifically ${area}` : ""}. I want ${vibeDescription} evening for ${groupSize} ${groupSize === "1" ? "person" : "people"} on a ${budgetName?.toLowerCase()} budget. Plan a perfect evening route — this can include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment, or anything that makes a great night out!`;
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-route", {
