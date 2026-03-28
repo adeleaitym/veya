@@ -14,6 +14,12 @@ const vibes = [
   { id: "late-night", label: "Late Night", emoji: "🌙" },
 ];
 
+const cityNameMap: Record<string, string> = {
+  stockholm: "Stockholm", paris: "Paris", london: "London", tokyo: "Tokyo",
+  barcelona: "Barcelona", istanbul: "Istanbul", "new-york": "New York",
+  "mexico-city": "Mexico City", marrakech: "Marrakech", bangkok: "Bangkok",
+};
+
 const groupSizes = ["1", "2", "3–4", "5+"];
 const budgets = ["Low", "Medium", "High"];
 const areas: Record<string, string[]> = {
