@@ -126,15 +126,18 @@ const Preferences = () => {
 
           {/* Area chips */}
           <div className="flex flex-wrap gap-2">
-            {nearbyAreas.map((area) => (
-              <button
-                key={area}
-                onClick={() => handleChipSelect(area)}
-                className={`zine-chip ${where === area || (area === "Nearby" && where === geoLabel) ? "selected" : ""}`}
-              >
-                {area === "Nearby" ? `📍 ${geoLabel || "Nearby"}` : area}
-              </button>
-            ))}
+            {nearbyAreas
+              .filter((area) => area !== "Nearby" || !geoLabel)
+              .filter((area) => area !== geoLabel)
+              .map((area) => (
+                <button
+                  key={area}
+                  onClick={() => handleChipSelect(area)}
+                  className={`zine-chip ${where === area ? "selected" : ""}`}
+                >
+                  {area}
+                </button>
+              ))}
           </div>
 
           {/* Free text fallback */}
