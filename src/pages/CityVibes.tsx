@@ -336,9 +336,9 @@ const CityVibes = () => {
               fill="none"
               preserveAspectRatio="xMidYMid meet"
             >
-              <path d={generatePathD(route.stops)} stroke="hsl(340, 82%, 65%)" strokeWidth="32" strokeLinecap="round" fill="none" opacity="0.35" />
-              <path d={generatePathD(route.stops)} stroke="hsl(340, 82%, 60%)" strokeWidth="18" strokeLinecap="round" fill="none" opacity="0.6" />
-              <path d={generatePathD(route.stops)} stroke="hsl(340, 82%, 70%)" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.5" />
+              <path d={generatePathD(route.stops)} stroke="hsl(24, 90%, 58%)" strokeWidth="32" strokeLinecap="round" fill="none" opacity="0.35" />
+              <path d={generatePathD(route.stops)} stroke="hsl(24, 90%, 55%)" strokeWidth="18" strokeLinecap="round" fill="none" opacity="0.6" />
+              <path d={generatePathD(route.stops)} stroke="hsl(24, 90%, 65%)" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.5" />
             </svg>
 
             {route.stops.map((stop, i) => {
