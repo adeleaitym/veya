@@ -84,8 +84,10 @@ serve(async (req) => {
           title: city ? `${city} food route` : "Veya route",
           message: {
             content: userContent,
+            mentions: [],
             context: {
               timezone: "UTC",
+              username: "veya-user",
               profilePictureUrl: null,
               fullName: "Veya User",
               email: null,
