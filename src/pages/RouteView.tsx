@@ -35,6 +35,7 @@ const RouteView = () => {
   const budget = searchParams.get("budget") || "";
   const time = searchParams.get("time") || "";
   const food = searchParams.get("food") || "";
+  const city = searchParams.get("city") || where;
 
   const [route, setRoute] = useState<RouteData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,9 +46,9 @@ const RouteView = () => {
       setLoading(true);
       setError(null);
       try {
-        const message = `Vibe: ${vibe}. Location: ${where}. Budget: ${budget}. Time: ${time}. Food: ${food}.`;
+        const message = `Vibe: ${vibe}. Neighborhood: ${where}. City: ${city}. Budget: ${budget}. Time: ${time}. Food: ${food}. Please suggest REAL existing venues in ${city}.`;
         const { data, error: fnError } = await supabase.functions.invoke("generate-route", {
-          body: { message, city: where },
+          body: { message, city },
         });
         if (fnError) throw fnError;
         const parsed: RouteData = typeof data.route === "string" ? JSON.parse(data.route) : data.route;

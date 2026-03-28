@@ -1,15 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-type StopType = "drink" | "appetizer" | "main" | "dessert" | "experience" | "cocktail" | "coffee" | "snack";
-
-type RouteStop = {
-  order: number;
-  name: string;
-  type: StopType;
-  description: string;
-  duration: string;
-};
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -17,47 +7,6 @@ const corsHeaders = {
 };
 
 const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
-
-const quickStopsByMood: Record<string, Omit<RouteStop, "order">[]> = {
-  jazz: [
-    { name: "Björk & Brass", type: "cocktail", description: "Start with a smoky house cocktail while the first sax set warms up.", duration: "45 min" },
-    { name: "Blue Note Cellar", type: "drink", description: "A cozy underground jazz bar with candlelit booths and vinyl interludes.", duration: "60 min" },
-    { name: "Norr Strand Night Walk", type: "experience", description: "Take a waterside stroll between venues to reset and soak in city lights.", duration: "25 min" },
-    { name: "Midnight Kitchen Atelier", type: "main", description: "Late dinner with Nordic comfort plates and natural wine pairings.", duration: "75 min" },
-    { name: "Neon Pastry Club", type: "dessert", description: "Finish with a warm cardamom bun and dark chocolate cream.", duration: "30 min" },
-  ],
-  party: [
-    { name: "Pulse Courtyard", type: "cocktail", description: "Open-air pregame with upbeat DJs and signature spritzes.", duration: "50 min" },
-    { name: "Afterglow Bites", type: "snack", description: "Quick shared bites before peak dance hours.", duration: "30 min" },
-    { name: "District 11 Club", type: "drink", description: "Main dancefloor stop with rotating electronic sets.", duration: "90 min" },
-    { name: "Moonline Rooftop", type: "experience", description: "Breather stop for skyline views and crowd energy.", duration: "35 min" },
-    { name: "Night Noodles Window", type: "main", description: "Post-party comfort noodles at a beloved late-night counter.", duration: "35 min" },
-  ],
-  default: [
-    { name: "Lantern Corner Café", type: "coffee", description: "Ease into the evening with a slow coffee and people-watching.", duration: "35 min" },
-    { name: "Old Town Passage", type: "experience", description: "Scenic walking segment through atmospheric streets and hidden alleys.", duration: "25 min" },
-    { name: "Harbor Flame Kitchen", type: "main", description: "Relaxed dinner stop focused on local flavors and seasonal plates.", duration: "70 min" },
-    { name: "Amber Room Bar", type: "cocktail", description: "Golden-hour drinks in a moody bar with low music and great bartenders.", duration: "55 min" },
-    { name: "Cloudline Viewpoint", type: "dessert", description: "End at a city overlook with a sweet bite and night skyline photos.", duration: "30 min" },
-  ],
-};
-
-const pickMood = (message: string) => {
-  const lower = message.toLowerCase();
-  if (lower.includes("jazz")) return "jazz";
-  if (lower.includes("party") || lower.includes("club")) return "party";
-  return "default";
-};
-
-const buildFallbackRoute = (message: string, city: string) => {
-  const mood = pickMood(message);
-  const base = quickStopsByMood[mood] ?? quickStopsByMood.default;
-  return {
-    routeName: `${city || "City"} ${mood === "default" ? "Evening Route" : `${mood[0].toUpperCase()}${mood.slice(1)} Route`}`,
-    description: `A quick curated route built for your vibe in ${city || "the city"}.`,
-    stops: base.map((stop, index) => ({ ...stop, order: index + 1 })),
-  };
-};
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -76,42 +25,65 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are Veya, an evening route planner AI. The user is exploring ${city || "a city"}. Based on their preferences, generate a curated evening route with 4-6 specific stops. Include restaurants, bars, cafés, walks, viewpoints, cultural spots, entertainment — anything that makes a great night out! For each stop provide: a name (real-sounding venue names), a type (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack), a short vivid description (1 sentence max), and an estimated duration. Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure: {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string","description":"string","duration":"string"}]}`;
+    const systemPrompt = `You are Veya, an evening route planner AI for real cities. The user is exploring ${city || "a city"}.
 
-    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
-    if (GOOGLE_AI_API_KEY) {
-      try {
-        const aiResp = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\nUser request: ${message}` }] }],
-              generationConfig: { responseMimeType: "application/json" },
-            }),
-          },
-        );
+CRITICAL RULES:
+- You MUST suggest REAL, actually existing restaurants, bars, cafés, and venues in ${city || "the city"}.
+- Use real venue names that people can actually visit and find on Google Maps.
+- If you know the specific neighborhood, suggest places in or near that area.
+- Include a mix: restaurants, cocktail bars, wine bars, cafés, cultural spots, scenic walks, viewpoints.
+- Each stop should feel like a local recommendation, not a generic placeholder.
+- Adapt to the user's vibe, budget, time, and food preferences.
+- Generate 4-6 stops that flow naturally as an evening route.
 
-        if (aiResp.ok) {
-          const aiData = await aiResp.json();
-          const content = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "";
-          if (content) {
-            return new Response(JSON.stringify({ route: content, provider: "google" }), {
-              headers: jsonHeaders,
-            });
-          }
-        } else {
-          const errText = await aiResp.text();
-          console.error("Google AI failed:", aiResp.status, errText.substring(0, 300));
-        }
-      } catch (e) {
-        console.error("Google AI error:", e);
-      }
+Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure:
+{"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack)","description":"string (1 vivid sentence about the real place)","duration":"string"}]}`;
+
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      console.error("LOVABLE_API_KEY not configured");
+      return new Response(JSON.stringify({ error: "AI service not configured" }), {
+        status: 500,
+        headers: jsonHeaders,
+      });
     }
 
-    const fallback = buildFallbackRoute(message, city || "City");
-    return new Response(JSON.stringify({ route: JSON.stringify(fallback), provider: "fallback" }), {
+    const aiResp = await fetch("https://api.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+        ],
+        response_format: { type: "json_object" },
+      }),
+    });
+
+    if (!aiResp.ok) {
+      const errText = await aiResp.text();
+      console.error("Lovable AI failed:", aiResp.status, errText.substring(0, 500));
+      return new Response(JSON.stringify({ error: "AI generation failed" }), {
+        status: 502,
+        headers: jsonHeaders,
+      });
+    }
+
+    const aiData = await aiResp.json();
+    const content = aiData.choices?.[0]?.message?.content || "";
+
+    if (!content) {
+      return new Response(JSON.stringify({ error: "Empty AI response" }), {
+        status: 502,
+        headers: jsonHeaders,
+      });
+    }
+
+    return new Response(JSON.stringify({ route: content, provider: "lovable-ai" }), {
       headers: jsonHeaders,
     });
   } catch (e) {

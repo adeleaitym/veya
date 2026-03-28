@@ -5,14 +5,37 @@ const budgetOptions = ["$", "$$", "$$$", "$$$$"];
 const timeOptions = ["Early (17–19)", "Classic (19–22)", "Late (22+)"];
 const foodOptions = ["Anything", "Vegetarian", "Vegan", "No preference"];
 
-const nearbyAreas = [
-  "Nearby",
-  "Old Town",
-  "Downtown",
-  "Waterfront",
-  "Arts District",
-  "University Area",
-];
+// City-specific neighborhoods
+const cityNeighborhoods: Record<string, string[]> = {
+  Stockholm: ["Södermalm", "Gamla Stan", "Östermalm", "Vasastan", "Kungsholmen", "Djurgården"],
+  Gothenburg: ["Haga", "Linné", "Majorna", "Nordstan", "Avenyn", "Långgatorna"],
+  Malmö: ["Möllevången", "Davidshall", "Västra Hamnen", "Gamla Staden", "Triangeln"],
+  Copenhagen: ["Nørrebro", "Vesterbro", "Frederiksberg", "Christianshavn", "Indre By"],
+  Oslo: ["Grünerløkka", "Aker Brygge", "Frogner", "Majorstuen", "Torshov"],
+  Helsinki: ["Kallio", "Punavuori", "Kruununhaka", "Kamppi", "Eira"],
+  London: ["Soho", "Shoreditch", "Covent Garden", "Camden", "Brixton", "Notting Hill"],
+  Berlin: ["Kreuzberg", "Mitte", "Prenzlauer Berg", "Friedrichshain", "Neukölln"],
+  Paris: ["Le Marais", "Montmartre", "Saint-Germain", "Bastille", "Belleville"],
+  Barcelona: ["El Born", "Gràcia", "Raval", "Eixample", "Barceloneta"],
+  Amsterdam: ["De Pijp", "Jordaan", "De 9 Straatjes", "Oud-West", "Oost"],
+  "New York": ["East Village", "Williamsburg", "West Village", "Lower East Side", "SoHo"],
+};
+
+const defaultNeighborhoods = ["Old Town", "Downtown", "Waterfront", "Arts District", "University Area"];
+
+const getNeighborhoods = (city: string): string[] => {
+  // Try exact match first, then partial match
+  const exact = cityNeighborhoods[city];
+  if (exact) return exact;
+
+  const lower = city.toLowerCase();
+  for (const [key, areas] of Object.entries(cityNeighborhoods)) {
+    if (key.toLowerCase() === lower || lower.includes(key.toLowerCase())) {
+      return areas;
+    }
+  }
+  return defaultNeighborhoods;
+};
 
 const Preferences = () => {
   const navigate = useNavigate();
@@ -25,6 +48,7 @@ const Preferences = () => {
   const [food, setFood] = useState("Anything");
   const [geoStatus, setGeoStatus] = useState<"idle" | "loading" | "done" | "denied">("idle");
   const [geoLabel, setGeoLabel] = useState("");
+  const [detectedCity, setDetectedCity] = useState("");
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -46,8 +70,10 @@ const Preferences = () => {
             data.address?.city_district ||
             data.address?.city ||
             "Your area";
+          const city = data.address?.city || data.address?.town || "";
           setGeoLabel(area);
           setWhere(area);
+          setDetectedCity(city);
           setGeoStatus("done");
         } catch {
           setGeoStatus("done");
@@ -62,23 +88,21 @@ const Preferences = () => {
     );
   }, []);
 
+  const neighborhoods = getNeighborhoods(detectedCity);
+
   const handleChipSelect = (area: string) => {
-    if (area === "Nearby" && geoLabel) {
-      setWhere(geoLabel);
-    } else if (area === "Nearby") {
-      setWhere("Surprise me");
-    } else {
-      setWhere(area);
-    }
+    setWhere(area);
   };
 
   const handleCreate = () => {
+    const cityContext = detectedCity || where;
     const params = new URLSearchParams({
       vibe,
       where: where || "Surprise me",
       budget,
       time,
       food,
+      city: cityContext,
     });
     navigate(`/route?${params.toString()}`);
   };
@@ -120,14 +144,23 @@ const Preferences = () => {
           {geoStatus === "done" && geoLabel && (
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/10">
               <span className="text-sm">📍</span>
-              <span className="text-xs font-body text-secondary font-semibold">{geoLabel}</span>
+              <span className="text-xs font-body text-secondary font-semibold">
+                {geoLabel}{detectedCity ? `, ${detectedCity}` : ""}
+              </span>
             </div>
           )}
 
           {/* Area chips */}
           <div className="flex flex-wrap gap-2">
-            {nearbyAreas
-              .filter((area) => area !== "Nearby" || !geoLabel)
+            {geoLabel && (
+              <button
+                onClick={() => handleChipSelect(geoLabel)}
+                className={`zine-chip ${where === geoLabel ? "selected" : ""}`}
+              >
+                📍 {geoLabel}
+              </button>
+            )}
+            {neighborhoods
               .filter((area) => area !== geoLabel)
               .map((area) => (
                 <button
