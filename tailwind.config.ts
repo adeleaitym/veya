@@ -14,9 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        display: ['"Playfair Display"', "serif"],
-        body: ['"DM Sans"', "sans-serif"],
-        accent: ["Caveat", "cursive"],
+        display: ["Caveat", "cursive"],
+        body: ["Nunito", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -233,7 +233,7 @@ const CityVibes = () => {
       <header className="w-full max-w-md mx-auto px-6 pt-8 pb-2">
         <button
           onClick={() => navigate("/cities")}
-          className="text-ink/40 font-body text-sm hover:text-ink/70 transition-colors"
+          className="text-ink/40 font-display text-lg hover:text-ink/70 transition-colors"
         >
           ← back to cities
         </button>
@@ -247,7 +247,7 @@ const CityVibes = () => {
             <h1 className="text-5xl font-display font-bold text-ink leading-[0.95] ink-underline">
               {cityName}
             </h1>
-            <p className="text-ink/50 font-accent text-xl mt-3 tilt-3">
+            <p className="text-ink/50 text-sm font-display text-xl mt-3 tilt-3">
               ✎ Plan your evening
             </p>
           </div>
@@ -423,7 +423,7 @@ const CityVibes = () => {
             <h2 className="text-4xl font-display font-bold text-ink leading-tight ink-underline">
               {route.routeName}
             </h2>
-            <p className="text-sm font-accent text-ink/40 mt-3 italic tilt-3">"{route.description}"</p>
+            <p className="text-sm font-body text-ink/40 mt-3 italic tilt-3">"{route.description}"</p>
           </div>
 
           {/* Winding path */}
