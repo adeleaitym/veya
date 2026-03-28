@@ -252,23 +252,24 @@ const CityVibes = () => {
             </p>
           </div>
 
-          {/* Free prompt search */}
+          {/* Prompt + Quick Submit */}
           <div className="space-y-3">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-2">
-              Describe your perfect evening
-            </h2>
             <div className="sketch-border-light bg-paper px-4 py-3">
               <textarea
                 value={freePrompt}
-                onChange={(e) => setFreePrompt(e.target.value)}
+                onChange={(e) => { setFreePrompt(e.target.value); setSelectedVibe(null); }}
                 placeholder="e.g. Jazz bar hopping with craft cocktails, ending at a rooftop with a view..."
                 rows={2}
                 className="w-full bg-transparent font-body text-sm text-ink placeholder:text-ink/25 resize-none focus:outline-none leading-relaxed"
               />
             </div>
-            <p className="text-xs font-display text-ink/30 tilt-5">
-              or pick a vibe below ↓
-            </p>
+            <button
+              onClick={handleCreate}
+              disabled={!canSubmit}
+              className="zine-btn"
+            >
+              {canSubmit ? "Build my route →" : "Type something or pick a vibe ↓"}
+            </button>
           </div>
 
           <div className="ink-divider" />
@@ -276,7 +277,7 @@ const CityVibes = () => {
           {/* Vibe — horizontal swipeable */}
           <div className="space-y-4">
             <h2 className="text-3xl font-display font-bold text-ink tilt-6">
-              Pick your vibe
+              Or pick a vibe
             </h2>
             <div 
               className="flex gap-4 overflow-x-auto pb-4 -mx-6 px-6 snap-x snap-mandatory scrollbar-hide"
@@ -310,95 +311,91 @@ const CityVibes = () => {
                 </button>
               ))}
             </div>
-          </div>
-
-          <div className="ink-divider" />
-
-          {/* Group size — hand-drawn circles */}
-          <div className="space-y-4">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-2">
-              How many?
-            </h2>
-            <div className="flex gap-3">
-              {groupSizes.map((size) => (
-                <button
-                  key={size}
-                  onClick={() => setGroupSize(size)}
-                  className={`w-14 h-14 flex items-center justify-center font-display text-xl font-bold transition-all ${
-                    groupSize === size
-                      ? "bg-ink text-paper border-ink"
-                      : "bg-transparent text-ink/60 border-ink/25 hover:border-ink/50"
-                  }`}
-                  style={{
-                    borderWidth: "2px",
-                    borderStyle: "solid",
-                    borderRadius: groupSize === size ? "50% 44% 50% 42%" : "42% 50% 44% 50%",
-                  }}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="ink-divider" />
-
-          {/* Budget — sketchy tab bar */}
-          <div className="space-y-4">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-5">
-              Budget?
-            </h2>
-            <div className="flex gap-2">
-              {budgets.map((b) => (
-                <button
-                  key={b}
-                  onClick={() => setBudget(b)}
-                  className={`zine-chip flex-1 text-center ${budget === b ? "selected" : ""}`}
-                >
-                  {b}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="ink-divider" />
-
-          {/* Area */}
-          <div className="space-y-4">
-            <h2 className="text-3xl font-display font-bold text-ink tilt-1">
-              Where to start?
-            </h2>
-            {cityAreas ? (
-              <div className="flex flex-wrap gap-2">
-                {cityAreas.map((a, i) => (
-                  <button
-                    key={a}
-                    onClick={() => setArea(a)}
-                    className={`zine-chip ${area === a ? "selected" : ""} ${tiltClasses[(i + 3) % tiltClasses.length]}`}
-                  >
-                    {a}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="zine-card tilt-3">
-                <div className="tape-strip" />
-                <p className="font-display text-2xl font-bold text-ink mt-1">{cityName}</p>
-                <p className="font-body text-xs text-ink/40 mt-1">We'll find the best spots ✦</p>
-              </div>
+            {selectedVibe && !freePrompt && (
+              <button
+                onClick={handleCreate}
+                className="zine-btn"
+              >
+                Build my route →
+              </button>
             )}
           </div>
 
-          {/* CTA */}
-          <div className="pt-2">
-            <button
-              onClick={handleCreate}
-              disabled={!canSubmit}
-              className="zine-btn"
-            >
-              {canSubmit ? "Build my route →" : "Pick vibe, size & budget first"}
-            </button>
-          </div>
+          <div className="ink-divider" />
+
+          {/* Optional extras — collapsed feel */}
+          <details className="group">
+            <summary className="text-2xl font-display font-bold text-ink cursor-pointer tilt-2 list-none flex items-center gap-2">
+              <span>✦ Fine-tune (optional)</span>
+              <span className="text-ink/30 text-lg group-open:rotate-90 transition-transform">›</span>
+            </summary>
+            <div className="mt-6 space-y-8">
+              {/* Group size */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-display font-bold text-ink/70">How many?</h3>
+                <div className="flex gap-3">
+                  {groupSizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setGroupSize(size)}
+                      className={`w-12 h-12 flex items-center justify-center font-display text-lg font-bold transition-all ${
+                        groupSize === size
+                          ? "bg-ink text-paper border-ink"
+                          : "bg-transparent text-ink/60 border-ink/25 hover:border-ink/50"
+                      }`}
+                      style={{
+                        borderWidth: "2px",
+                        borderStyle: "solid",
+                        borderRadius: groupSize === size ? "50% 44% 50% 42%" : "42% 50% 44% 50%",
+                      }}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Budget */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-display font-bold text-ink/70">Budget?</h3>
+                <div className="flex gap-2">
+                  {budgets.map((b) => (
+                    <button
+                      key={b}
+                      onClick={() => setBudget(b)}
+                      className={`zine-chip flex-1 text-center ${budget === b ? "selected" : ""}`}
+                    >
+                      {b}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Area */}
+              <div className="space-y-3">
+                <h3 className="text-xl font-display font-bold text-ink/70">Where to start?</h3>
+                {cityAreas ? (
+                  <div className="flex flex-wrap gap-2">
+                    {cityAreas.map((a, i) => (
+                      <button
+                        key={a}
+                        onClick={() => setArea(a)}
+                        className={`zine-chip ${area === a ? "selected" : ""} ${tiltClasses[(i + 3) % tiltClasses.length]}`}
+                      >
+                        {a}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="zine-card tilt-3">
+                    <div className="tape-strip" />
+                    <p className="font-display text-xl font-bold text-ink mt-1">{cityName}</p>
+                    <p className="font-body text-xs text-ink/40 mt-1">We'll find the best spots ✦</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </details>
         </section>
       )}
 
