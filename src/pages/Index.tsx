@@ -7,9 +7,6 @@ const features = [
   { icon: iconPin, label: "Curated routes", desc: "Handpicked paths through iconic neighborhoods" },
   { icon: iconNoodles, label: "Local eats", desc: "From street stalls to hidden gems" },
   { icon: iconCoffee, label: "Café stops", desc: "Rest, refuel, and people-watch" },
-  { icon: iconNoodles, label: "Restaurant hops", desc: "Multi-course journeys across the city's best tables" },
-  { icon: iconPin, label: "Chef's picks", desc: "Spots loved by local chefs and foodies" },
-  { icon: iconCoffee, label: "Sweet endings", desc: "Dessert bars, bakeries, and pastry shops" },
 ];
 
 const Index = () => {
