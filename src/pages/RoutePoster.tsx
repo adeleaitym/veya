@@ -1,14 +1,18 @@
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useRef } from "react";
+
+const accentColors = ["#C75B3A", "#8B4F6E", "#2A7B6F", "#D4943A", "#5B7FA5", "#6B8E5A"];
+
+const stopEmoji: Record<string, string> = {
+  drink: "🍷", cocktail: "🍸", coffee: "☕", appetizer: "🥗",
+  main: "🍽️", dessert: "🍰", snack: "🥨", experience: "✨",
+  viewpoint: "🌅", culture: "🎨", music: "🎵", nightlife: "🌙", walk: "🚶",
+};
 
 const RoutePoster = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [posterUrl, setPosterUrl] = useState<string | null>(null);
-  const [textContent, setTextContent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const posterRef = useRef<HTMLDivElement>(null);
 
   const routeName = searchParams.get("routeName") || "My Night";
   const city = searchParams.get("city") || "";
@@ -20,88 +24,23 @@ const RoutePoster = () => {
     stops = [];
   }
 
-  useEffect(() => {
-    const generate = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const { data, error: fnError } = await supabase.functions.invoke(
-          "generate-route-poster",
-          { body: { routeName, city, stops } }
-        );
-        if (fnError) throw fnError;
-        if (data?.imageUrl) {
-          setPosterUrl(data.imageUrl);
-        } else if (data?.textContent) {
-          setTextContent(data.textContent);
-        } else {
-          throw new Error("No poster content returned");
-        }
-      } catch (e: any) {
-        setError(e.message || "Failed to generate poster");
-      } finally {
-        setLoading(false);
-      }
-    };
-    generate();
-  }, [routeName, city]);
-
   const handleShare = async () => {
-    if (!posterUrl) return;
+    // Try native share with text, fallback to clipboard
+    const text = `${routeName} — ${city}\n\n${stops.map((s: any, i: number) => `${i + 1}. ${s.name}`).join("\n")}\n\nPlanned with Veya ✦`;
     try {
-      const resp = await fetch(posterUrl);
-      const blob = await resp.blob();
-      const file = new File([blob], "veya-night.png", { type: "image/png" });
-
-      if (navigator.share && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: routeName,
-          text: `Check out my evening plan: ${routeName} ✦`,
-          files: [file],
-        });
+      if (navigator.share) {
+        await navigator.share({ title: routeName, text });
       } else {
-        // Fallback: download
-        const a = document.createElement("a");
-        a.href = posterUrl;
-        a.download = "veya-night.png";
-        a.click();
+        await navigator.clipboard.writeText(text);
+        alert("Copied to clipboard!");
       }
     } catch {
-      // Fallback: download
-      const a = document.createElement("a");
-      a.href = posterUrl!;
-      a.download = "veya-night.png";
-      a.click();
+      await navigator.clipboard.writeText(text);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen paper-texture flex flex-col items-center justify-center gap-5 px-6">
-        <div className="w-14 h-14 rounded-full border-[3px] border-ink/10 border-t-secondary animate-spin" />
-        <p className="font-display text-2xl text-ink/70">Creating your poster...</p>
-        <p className="font-body text-sm text-ink/30 text-center max-w-[260px]">
-          Our artist is illustrating your evening — this takes a moment ✦
-        </p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen paper-texture flex flex-col items-center justify-center gap-4 px-6 text-center">
-        <p className="font-display text-3xl text-ink">Oops ✦</p>
-        <p className="font-body text-sm text-ink/50">{error}</p>
-        <button onClick={() => navigate(-1)} className="zine-btn mt-4">
-          Go back
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen paper-texture flex flex-col items-center">
-      {/* Header */}
       <header className="w-full max-w-md mx-auto px-6 pt-10 pb-2">
         <button
           onClick={() => navigate(-1)}
@@ -117,50 +56,142 @@ const RoutePoster = () => {
         </p>
       </header>
 
-      {/* Poster */}
+      {/* Poster Card */}
       <section className="w-full max-w-md mx-auto px-5 mt-6">
-        {posterUrl ? (
-          <div className="sketch-border overflow-hidden rounded-2xl shadow-xl">
-            <img
-              src={posterUrl}
-              alt={`Illustrated poster of ${routeName}`}
-              className="w-full h-auto"
-            />
-          </div>
-        ) : textContent ? (
-          <div className="sketch-border overflow-hidden rounded-2xl shadow-xl bg-paper p-6">
-            <div className="text-center mb-6">
-              <h2 className="font-display text-3xl font-bold text-ink">{routeName}</h2>
-              {city && <p className="font-body text-sm text-ink/40 mt-1">{city}</p>}
+        <div
+          ref={posterRef}
+          className="relative overflow-hidden rounded-2xl shadow-2xl"
+          style={{
+            background: "linear-gradient(165deg, #FDF6EE 0%, #FFF8F2 40%, #F5EDE3 100%)",
+            border: "1px solid rgba(200, 185, 165, 0.4)",
+          }}
+        >
+          {/* Inner border */}
+          <div
+            className="absolute inset-3 rounded-xl pointer-events-none"
+            style={{ border: "1px solid rgba(180, 160, 135, 0.2)" }}
+          />
+
+          {/* Decorative corner marks */}
+          <div className="absolute top-5 left-5 w-4 h-4 border-t border-l" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
+          <div className="absolute top-5 right-5 w-4 h-4 border-t border-r" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
+          <div className="absolute bottom-5 left-5 w-4 h-4 border-b border-l" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
+          <div className="absolute bottom-5 right-5 w-4 h-4 border-b border-r" style={{ borderColor: "rgba(180, 160, 135, 0.3)" }} />
+
+          {/* Header */}
+          <div className="px-8 pt-10 pb-6 text-center relative">
+            {/* Subtle decorative dots */}
+            <div className="absolute top-6 left-8 flex gap-1.5 opacity-20">
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColors[0] }} />
+              <div className="w-1 h-1 rounded-full mt-0.5" style={{ background: accentColors[2] }} />
             </div>
-            <div className="space-y-4">
-              {stops.map((stop: any, i: number) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary/15 flex items-center justify-center text-sm font-display font-bold text-secondary">
-                    {i + 1}
-                  </div>
-                  <div>
-                    <p className="font-display text-sm font-bold text-ink">{stop.name}</p>
-                    <p className="font-body text-xs text-ink/40">{stop.type}</p>
-                  </div>
-                </div>
-              ))}
+            <div className="absolute top-6 right-8 flex gap-1.5 opacity-20">
+              <div className="w-1 h-1 rounded-full mt-0.5" style={{ background: accentColors[3] }} />
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: accentColors[1] }} />
             </div>
-            {textContent && (
-              <p className="font-body text-xs text-ink/30 mt-6 whitespace-pre-line leading-relaxed">
-                {textContent.substring(0, 500)}
+
+            <p
+              className="font-body text-[10px] tracking-[0.3em] uppercase mb-4"
+              style={{ color: "#b8a08a" }}
+            >
+              Your Evening
+            </p>
+            <div className="w-8 h-[1px] mx-auto mb-5" style={{ background: "#d8ccbe" }} />
+            <h2
+              className="font-display text-[28px] leading-tight font-bold"
+              style={{ color: "#2a2a2a" }}
+            >
+              {routeName}
+            </h2>
+            {city && (
+              <p
+                className="font-body text-xs mt-2"
+                style={{ color: "#aaa" }}
+              >
+                {city} · {stops.length} stops
               </p>
             )}
-            <p className="text-center font-display text-sm text-secondary mt-6">Veya ✦</p>
           </div>
-        ) : null}
 
-        {/* Route name */}
-        <div className="text-center mt-4">
-          <h2 className="font-display text-2xl font-bold text-ink">{routeName}</h2>
-          {city && (
-            <p className="font-body text-sm text-ink/40 mt-1">{city}</p>
-          )}
+          {/* Divider */}
+          <div className="px-12">
+            <div className="h-[1px]" style={{ background: "linear-gradient(90deg, transparent, #e0d6ca, transparent)" }} />
+          </div>
+
+          {/* Stops */}
+          <div className="px-6 py-6 space-y-1">
+            {stops.map((stop: any, i: number) => {
+              const color = accentColors[i % accentColors.length];
+              const emoji = stopEmoji[stop.type] || "📍";
+              return (
+                <div key={i} className="relative">
+                  {/* Connector line */}
+                  {i < stops.length - 1 && (
+                    <div
+                      className="absolute left-[22px] top-[44px] bottom-[-4px] w-[1.5px]"
+                      style={{
+                        background: `repeating-linear-gradient(to bottom, ${color}33 0px, ${color}33 3px, transparent 3px, transparent 8px)`,
+                      }}
+                    />
+                  )}
+                  <div className="flex gap-3 p-3 rounded-xl relative" style={{ background: "rgba(255,255,255,0.5)" }}>
+                    {/* Number badge */}
+                    <div className="flex-shrink-0 mt-0.5">
+                      <div
+                        className="w-[30px] h-[30px] rounded-full flex items-center justify-center font-display text-sm font-bold"
+                        style={{ background: `${color}15`, color }}
+                      >
+                        {i + 1}
+                      </div>
+                    </div>
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3
+                          className="font-display text-[15px] font-bold leading-snug"
+                          style={{ color: "#2a2a2a" }}
+                        >
+                          {stop.name}
+                        </h3>
+                        <span className="flex-shrink-0 text-sm opacity-30">{emoji}</span>
+                      </div>
+                      <p
+                        className="font-body text-[10px] leading-relaxed mt-1 line-clamp-2"
+                        style={{ color: "#999" }}
+                      >
+                        {stop.description}
+                      </p>
+                      <span
+                        className="inline-block mt-1.5 px-2 py-0.5 rounded-full font-body text-[9px] font-semibold"
+                        style={{ background: `${color}10`, color }}
+                      >
+                        {stop.duration}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Footer */}
+          <div className="px-12 pb-2">
+            <div className="h-[1px]" style={{ background: "linear-gradient(90deg, transparent, #e0d6ca, transparent)" }} />
+          </div>
+          <div className="text-center pb-8 pt-4">
+            <p
+              className="font-display text-xl font-bold"
+              style={{ color: "#2A5A4A" }}
+            >
+              Veya
+            </p>
+            <p
+              className="font-body text-[8px] tracking-[0.25em] uppercase mt-1"
+              style={{ color: "#c4b09a" }}
+            >
+              Curated Evenings
+            </p>
+          </div>
         </div>
       </section>
 
