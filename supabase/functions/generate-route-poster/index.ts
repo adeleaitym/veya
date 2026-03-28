@@ -26,7 +26,7 @@ serve(async (req) => {
 
     const stopsList = stops.map((s: any, i: number) => `Stop ${i + 1}: ${s.name} (${s.type})`).join(", ");
 
-    const prompt = `Create a beautiful poster illustration in the style of a Korean travel poster with a winding pink ribbon path on a sage green background. The path winds from top to bottom in an S-curve shape. Along the path, place flat graphic illustrated scenes representing these food stops in ${city || "a city"}: ${stopsList}. Title at top: "${routeName}". Style: bold flat colors (sage green, coral pink, cream, charcoal), simple geometric buildings and landmarks, tiny illustrated people, minimal text, no gradients, no 3D, clean vector-like aesthetic. Portrait orientation poster layout. Include small birds, trees, and decorative elements around the edges.`;
+    const prompt = `Clean line art poster illustration on white background with a bold winding hot pink ribbon path from top to bottom in S-curve shape. Along the pink ribbon path, place line-drawn illustrated scenes with thin black ink outlines representing these food stops in ${city || "a city"}: ${stopsList}. Style: white background, thin black outlines, minimal color only hot pink accents and small green details, tiny line-drawn people walking along the path, birds in sky, hand-drawn editorial illustration style. Portrait orientation. No heavy text, clean and stylish.`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

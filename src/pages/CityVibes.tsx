@@ -150,6 +150,24 @@ const CityVibes = () => {
     experience: "✨", snack: "🥐", cocktail: "🍸", coffee: "☕",
   };
 
+  const getStopPosition = (index: number) => {
+    const y = 80 + index * 160;
+    const isEven = index % 2 === 0;
+    return { x: isEven ? 80 : 310, y };
+  };
+
+  const generatePathD = (stops: RouteStop[]) => {
+    if (stops.length === 0) return "";
+    const points = stops.map((_, i) => getStopPosition(i));
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1];
+      const curr = points[i];
+      d += ` C ${prev.x} ${prev.y + 80}, ${curr.x} ${curr.y - 80}, ${curr.x} ${curr.y}`;
+    }
+    return d;
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -310,57 +328,68 @@ const CityVibes = () => {
             <p className="text-sm font-body text-foreground/70 mt-1 italic">{route.description}</p>
           </div>
 
-          {/* Route stops with illustrations */}
-          <div className="space-y-4">
-            {route.stops.map((stop, i) => (
-              <div
-                key={i}
-                className="flex gap-4 items-start animate-fade-up"
-                style={{ animationDelay: `${i * 120}ms`, animationFillMode: "backwards" }}
-              >
-                {/* Illustration or placeholder */}
-                <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 bg-card/50 border border-border/30">
-                  {stopImages[i] ? (
-                    <img
-                      src={stopImages[i]}
-                      alt={stop.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      {loadingImages ? (
-                        <div className="w-6 h-6 rounded-full border-2 border-primary/40 border-t-primary animate-spin" />
-                      ) : (
-                        <span className="text-2xl">{stopTypeEmoji[stop.type.toLowerCase()] || "📍"}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
+          {/* Winding path with illustrations */}
+          <div className="relative w-full" style={{ height: `${route.stops.length * 160 + 60}px` }}>
+            <svg
+              className="absolute inset-0 w-full h-full"
+              viewBox={`0 0 390 ${route.stops.length * 160 + 60}`}
+              fill="none"
+              preserveAspectRatio="xMidYMid meet"
+            >
+              <path d={generatePathD(route.stops)} stroke="hsl(340, 82%, 65%)" strokeWidth="32" strokeLinecap="round" fill="none" opacity="0.35" />
+              <path d={generatePathD(route.stops)} stroke="hsl(340, 82%, 60%)" strokeWidth="18" strokeLinecap="round" fill="none" opacity="0.6" />
+              <path d={generatePathD(route.stops)} stroke="hsl(340, 82%, 70%)" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.5" />
+            </svg>
 
-                {/* Stop info */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-full bg-primary/90 flex items-center justify-center text-xs font-body font-bold text-primary-foreground flex-shrink-0">
-                      {i + 1}
-                    </span>
-                    <p className="text-xs font-body text-muted-foreground uppercase tracking-wide">
+            {route.stops.map((stop, i) => {
+              const pos = getStopPosition(i);
+              const isLeft = i % 2 === 0;
+              return (
+                <div
+                  key={i}
+                  className="absolute flex items-center gap-3 animate-fade-up"
+                  style={{
+                    top: `${pos.y - 36}px`,
+                    left: isLeft ? "12px" : "auto",
+                    right: isLeft ? "auto" : "12px",
+                    animationDelay: `${i * 150}ms`,
+                    animationFillMode: "backwards",
+                  }}
+                >
+                  {/* Stop illustration or emoji */}
+                  <div className="w-16 h-16 rounded-2xl overflow-hidden flex-shrink-0 bg-white border border-border/30 shadow-md">
+                    {stopImages[i] ? (
+                      <img src={stopImages[i]} alt={stop.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        {loadingImages ? (
+                          <div className="w-5 h-5 rounded-full border-2 border-primary/40 border-t-primary animate-spin" />
+                        ) : (
+                          <span className="text-xl">{stopTypeEmoji[stop.type.toLowerCase()] || "📍"}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Stop info card */}
+                  <div className={`bg-card/80 backdrop-blur-sm rounded-xl px-3 py-2 border border-border/40 shadow-sm max-w-[180px] ${isLeft ? "" : "text-right"}`}>
+                    <p className="text-[10px] font-body text-muted-foreground uppercase tracking-wider">
                       {stop.type} · {stop.duration}
                     </p>
+                    <p className="text-sm font-display font-bold text-foreground leading-tight mt-0.5">
+                      {stop.name}
+                    </p>
+                    <p className="text-[11px] font-body text-foreground/60 mt-0.5 leading-snug">
+                      {stop.description}
+                    </p>
                   </div>
-                  <p className="text-base font-display font-bold text-foreground leading-tight mt-1">{stop.name}</p>
-                  <p className="text-xs font-body text-foreground/70 mt-0.5 leading-snug">{stop.description}</p>
                 </div>
-
-                {/* Connector line */}
-                {i < route.stops.length - 1 && (
-                  <div className="absolute left-[3.25rem] mt-20 w-0.5 h-4 bg-primary/30" />
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* Route poster */}
-          <div className="mt-8">
+          <div className="mt-6">
             {posterImage ? (
               <div className="rounded-2xl overflow-hidden border border-border/30 shadow-lg">
                 <img src={posterImage} alt={`${route.routeName} poster`} className="w-full" />
