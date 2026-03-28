@@ -97,7 +97,7 @@ const CityVibes = () => {
       : `I'm in ${cityName} and open to anything! Surprise me with an amazing food journey!`;
 
     try {
-      const { data, error } = await supabase.functions.invoke("dust-chat", {
+      const { data, error } = await supabase.functions.invoke("generate-route", {
         body: { message: prompt, city: cityName },
       });
 
