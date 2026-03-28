@@ -39,34 +39,34 @@ CRITICAL RULES:
 Respond ONLY with valid JSON, no markdown, no explanation. Use this exact structure:
 {"routeName":"string","description":"string","stops":[{"order":1,"name":"string","type":"string (one of: drink, appetizer, main, dessert, experience, cocktail, coffee, snack)","description":"string (1 vivid sentence about the real place)","duration":"string"}]}`;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.error("LOVABLE_API_KEY not configured");
+    const GOOGLE_AI_API_KEY = Deno.env.get("GOOGLE_AI_API_KEY");
+    if (!GOOGLE_AI_API_KEY) {
+      console.error("GOOGLE_AI_API_KEY not configured");
       return new Response(JSON.stringify({ error: "AI service not configured" }), {
         status: 500,
         headers: jsonHeaders,
       });
     }
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-        response_format: { type: "json_object" },
-      }),
-    });
+    const aiResp = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GOOGLE_AI_API_KEY}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [
+            { role: "user", parts: [{ text: `${systemPrompt}\n\n${message}` }] },
+          ],
+          generationConfig: {
+            responseMimeType: "application/json",
+          },
+        }),
+      }
+    );
 
     if (!aiResp.ok) {
       const errText = await aiResp.text();
-      console.error("Lovable AI failed:", aiResp.status, errText.substring(0, 500));
+      console.error("Google AI failed:", aiResp.status, errText.substring(0, 500));
       return new Response(JSON.stringify({ error: "AI generation failed" }), {
         status: 502,
         headers: jsonHeaders,
