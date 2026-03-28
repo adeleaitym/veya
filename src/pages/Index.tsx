@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import heroMap from "@/assets/hero-map.jpg";
 import iconNoodles from "@/assets/icon-noodles.png";
 import iconCoffee from "@/assets/icon-coffee.png";
@@ -10,6 +11,7 @@ const features = [
 ];
 
 const Index = () => {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-background flex flex-col items-center">
       {/* Header */}
@@ -67,7 +69,10 @@ const Index = () => {
 
       {/* CTA */}
       <section className="w-full max-w-md mx-auto px-6 mt-12 mb-16">
-        <button className="w-full rounded-full text-base font-body font-semibold tracking-wide h-14 bg-primary text-primary-foreground hover:brightness-110 transition-all shadow-lg">
+        <button
+          onClick={() => navigate("/cities")}
+          className="w-full rounded-full text-base font-body font-semibold tracking-wide h-14 bg-primary text-primary-foreground hover:brightness-110 transition-all shadow-lg"
+        >
           Start your route
         </button>
         <p className="text-center text-xs font-body text-muted-foreground mt-4">
