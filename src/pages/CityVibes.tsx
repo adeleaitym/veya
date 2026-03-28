@@ -1,105 +1,171 @@
 import { useNavigate, useParams } from "react-router-dom";
+import { useRef, useState, useEffect } from "react";
 
-const cityData: Record<string, { name: string; country: string; tagline: string }> = {
-  stockholm: { name: "Stockholm", country: "Sweden", tagline: "Nordic flavours between the islands" },
-  paris: { name: "Paris", country: "France", tagline: "Every corner hides a craving" },
-  london: { name: "London", country: "England", tagline: "A melting pot on every street" },
-  tokyo: { name: "Tokyo", country: "Japan", tagline: "Precision meets soul in every bite" },
-  barcelona: { name: "Barcelona", country: "Spain", tagline: "Sun-drenched plates by the sea" },
-  istanbul: { name: "Istanbul", country: "Turkey", tagline: "Where continents collide on a plate" },
-  "new-york": { name: "New York", country: "USA", tagline: "The city that never stops eating" },
-  "mexico-city": { name: "Mexico City", country: "Mexico", tagline: "Layered flavours, deep roots" },
-  marrakech: { name: "Marrakech", country: "Morocco", tagline: "Spice-kissed streets and rooftop feasts" },
-  bangkok: { name: "Bangkok", country: "Thailand", tagline: "Heat, sweet, sour — all at once" },
+import vibeDateNight from "@/assets/vibe-date-night.jpg";
+import vibeSoloAdventure from "@/assets/vibe-solo-adventure.jpg";
+import vibeSundayBrunch from "@/assets/vibe-sunday-brunch.jpg";
+import vibeStreetFood from "@/assets/vibe-street-food.jpg";
+import vibeHiddenGems from "@/assets/vibe-hidden-gems.jpg";
+import vibeRooftop from "@/assets/vibe-rooftop.jpg";
+import vibeLocalMarkets from "@/assets/vibe-local-markets.jpg";
+import vibeBakery from "@/assets/vibe-bakery.jpg";
+
+const cityNames: Record<string, string> = {
+  stockholm: "Stockholm",
+  paris: "Paris",
+  london: "London",
+  tokyo: "Tokyo",
+  barcelona: "Barcelona",
+  istanbul: "Istanbul",
+  "new-york": "New York",
+  "mexico-city": "Mexico City",
+  marrakech: "Marrakech",
+  bangkok: "Bangkok",
 };
 
-interface Vibe {
-  id: string;
-  emoji: string;
-  label: string;
-}
-
-const vibeGroups: { title: string; vibes: Vibe[] }[] = [
+const vibes = [
   {
-    title: "Mood",
-    vibes: [
-      { id: "date-night", emoji: "🌙", label: "Date night" },
-      { id: "solo-adventure", emoji: "🎒", label: "Solo adventure" },
-      { id: "sunday-brunch", emoji: "☀️", label: "Sunday brunch" },
-      { id: "late-night", emoji: "🌃", label: "Late-night bites" },
-    ],
+    id: "date-night",
+    label: "Date night",
+    tagline: "The city slows down after dark",
+    img: vibeDateNight,
   },
   {
-    title: "Experience",
-    vibes: [
-      { id: "hidden-gems", emoji: "💎", label: "Hidden gems" },
-      { id: "rooftop-views", emoji: "🏙️", label: "Rooftop views" },
-      { id: "waterfront", emoji: "🌊", label: "Waterfront dining" },
-      { id: "historic-quarter", emoji: "🏛️", label: "Historic quarter" },
-    ],
+    id: "solo-adventure",
+    label: "Solo adventure",
+    tagline: "Get lost on purpose",
+    img: vibeSoloAdventure,
   },
   {
-    title: "Cuisine",
-    vibes: [
-      { id: "street-food", emoji: "🍜", label: "Street food" },
-      { id: "fine-dining", emoji: "🍷", label: "Fine dining" },
-      { id: "local-markets", emoji: "🧺", label: "Local markets" },
-      { id: "bakery-hopping", emoji: "🥐", label: "Bakery hopping" },
-    ],
+    id: "sunday-brunch",
+    label: "Sunday brunch",
+    tagline: "Morning light and warm pastries",
+    img: vibeSundayBrunch,
+  },
+  {
+    id: "street-food",
+    label: "Street food",
+    tagline: "Follow the smoke and the crowd",
+    img: vibeStreetFood,
+  },
+  {
+    id: "hidden-gems",
+    label: "Hidden gems",
+    tagline: "Behind the unmarked door",
+    img: vibeHiddenGems,
+  },
+  {
+    id: "rooftop-views",
+    label: "Rooftop views",
+    tagline: "Sip above the skyline",
+    img: vibeRooftop,
+  },
+  {
+    id: "local-markets",
+    label: "Local markets",
+    tagline: "Taste what the locals taste",
+    img: vibeLocalMarkets,
+  },
+  {
+    id: "bakery-hopping",
+    label: "Bakery hopping",
+    tagline: "One croissant is never enough",
+    img: vibeBakery,
   },
 ];
 
 const CityVibes = () => {
   const { cityId } = useParams<{ cityId: string }>();
   const navigate = useNavigate();
-  const city = cityData[cityId || ""] || { name: cityId, country: "", tagline: "" };
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const cityName = cityNames[cityId || ""] || cityId;
+
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const scrollTop = container.scrollTop;
+      const cardHeight = container.clientHeight;
+      const index = Math.round(scrollTop / cardHeight);
+      setActiveIndex(Math.min(index, vibes.length - 1));
+    };
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
-      <header className="w-full max-w-md mx-auto px-6 pt-10 pb-2">
-        <button
-          onClick={() => navigate("/cities")}
-          className="text-muted-foreground font-body text-sm mb-4 hover:text-foreground transition-colors"
-        >
-          ← Back
-        </button>
-        <h1 className="text-4xl font-display font-bold text-foreground leading-none">
-          {city.name}
-        </h1>
-        <p className="text-foreground leading-none text-lg font-serif font-thin mt-2">
-          {city.tagline}
-        </p>
+    <div className="h-screen w-full bg-background flex flex-col overflow-hidden">
+      {/* Fixed header */}
+      <header className="absolute top-0 left-0 right-0 z-20 px-6 pt-8 pb-4 bg-gradient-to-b from-background/95 via-background/70 to-transparent">
+        <div className="max-w-md mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate("/cities")}
+            className="text-foreground/80 font-body text-sm hover:text-foreground transition-colors"
+          >
+            ← {cityName}
+          </button>
+          {/* Dot indicators */}
+          <div className="flex gap-1.5">
+            {vibes.map((_, i) => (
+              <div
+                key={i}
+                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                  i === activeIndex
+                    ? "bg-foreground scale-125"
+                    : "bg-foreground/30"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
       </header>
 
-      {/* Vibe groups */}
-      <section className="w-full max-w-md mx-auto px-6 mt-8 pb-16 space-y-8">
-        {vibeGroups.map((group) => (
-          <div key={group.title}>
-            <h3 className="text-xs font-body font-semibold uppercase tracking-widest text-muted-foreground mb-3">
-              {group.title}
-            </h3>
-            <div className="grid grid-cols-2 gap-2.5">
-              {group.vibes.map((vibe, i) => (
-                <button
-                  key={vibe.id}
-                  onClick={() => navigate(`/city/${cityId}/vibe/${vibe.id}`)}
-                  className="flex items-center gap-2.5 rounded-xl border border-border bg-card/40 px-4 py-3.5 text-left hover:bg-card/70 hover:scale-[1.03] hover:shadow-md transition-all animate-fade-up"
-                  style={{
-                    animationDelay: `${i * 50}ms`,
-                    animationFillMode: "backwards",
-                  }}
-                >
-                  <span className="text-xl">{vibe.emoji}</span>
-                  <span className="text-sm font-body font-medium text-foreground leading-tight">
-                    {vibe.label}
-                  </span>
-                </button>
-              ))}
+      {/* Snap-scroll vibe cards */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto snap-y snap-mandatory"
+        style={{ scrollBehavior: "smooth" }}
+      >
+        {vibes.map((vibe) => (
+          <div
+            key={vibe.id}
+            className="h-screen w-full snap-start snap-always relative flex flex-col"
+          >
+            {/* Full-bleed illustration */}
+            <div className="absolute inset-0">
+              <img
+                src={vibe.img}
+                alt={vibe.label}
+                className="w-full h-full object-cover"
+              />
+              {/* Gradient overlay for text readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+            </div>
+
+            {/* Bottom content */}
+            <div className="relative mt-auto px-6 pb-12 max-w-md mx-auto w-full">
+              <p className="text-white/70 font-body text-sm tracking-wide uppercase mb-1">
+                Choose your vibe
+              </p>
+              <h2 className="text-4xl font-display font-bold text-white leading-tight">
+                {vibe.label}
+              </h2>
+              <p className="text-white/80 font-serif font-thin text-lg mt-1 italic">
+                {vibe.tagline}
+              </p>
+              <button
+                onClick={() => navigate(`/city/${cityId}/vibe/${vibe.id}`)}
+                className="mt-5 w-full py-3.5 rounded-full bg-primary text-primary-foreground font-body font-semibold text-base shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all"
+              >
+                Explore this vibe →
+              </button>
             </div>
           </div>
         ))}
-      </section>
+      </div>
     </div>
   );
 };
