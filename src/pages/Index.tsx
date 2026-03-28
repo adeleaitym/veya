@@ -74,10 +74,10 @@ const Index = () => {
           onClick={() => navigate("/vibes")}
           className="zine-btn"
         >
-          Start your route →
+          Plan my night →
         </button>
         <p className="text-center text-xs font-display text-ink/30 mt-4 text-base">
-          Available in 10 cities worldwide ✦
+          Evenings designed around your mood ✦
         </p>
       </section>
     </div>
